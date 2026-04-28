@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Timetable - Teacher{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-950">
+    <!-- Header -->
+    <nav class="bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{{ url_for('teacher_dashboard') }}" class="text-2xl font-bold text-blue-400">← Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-6">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Manage Timetable</h1>
+            <p class="text-gray-400">Create class schedule sessions</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6 text-red-200">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6 text-green-200">
+            ✓ Timetable session "{{ subject_name }}" created successfully!
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Timetable Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                    <h2 class="text-lg font-bold mb-4">Add Session</h2>
+
+                    <form method="POST" action="{{ url_for('manage_timetable') }}" class="space-y-4">
+                        <div>
+                            <label for="classroom_id" class="block text-sm font-medium text-gray-300 mb-1">Class</label>
+                            <select
+                                id="classroom_id"
+                                name="classroom_id"
+                                required
+                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
+                            >
+                                <option value="">Select Class</option>
+                                {% for classroom in classrooms %}
+                                <option value="{{ classroom.id }}">{{ classroom.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="day_of_week" class="block text-sm font-medium text-gray-300 mb-1">Day</label>
+                            <select
+                                id="day_of_week"
+                                name="day_of_week"
+                                required
+                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
+                            >
+                                <option value="">Select Day</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="start_time" class="block text-sm font-medium text-gray-300 mb-1">Start Time</label>
+                            <input
+                                type="time"
+                                id="start_time"
+                                name="start_time"
+                                required
+                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="end_time" class="block text-sm font-medium text-gray-300 mb-1">End Time</label>
+                            <input
+                                type="time"
+                                id="end_time"
+                                name="end_time"
+                                required
+                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="subject_name" class="block text-sm font-medium text-gray-300 mb-1">Subject</label>
+                            <input
+                                type="text"
+                                id="subject_name"
+                                name="subject_name"
+                                required
+                                placeholder="e.g., Mathematics"
+                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
+                            >
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition text-sm"
+                        >
+                            Add Session
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Timetable -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                    <h2 class="text-lg font-bold mb-4">Your Timetable</h2>
+
+                    {% set all_timetables = [] %}
+                    {% for classroom in classrooms %}
+                        {% set timetables = classroom.timetables %}
+                        {% if timetables %}
+                            {% for timetable in timetables %}
+                                {% set _ = all_timetables.append((classroom, timetable)) %}
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if all_timetables %}
+                    <div class="space-y-3">
+                        {% for classroom, timetable in all_timetables | sort(attribute='0.name') %}
+                        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-blue-400 font-semibold">{{ timetable.subject_name }}</p>
+                                    <p class="text-sm text-gray-400">{{ classroom.name }} • {{ timetable.day_of_week }}</p>
+                                    <p class="text-sm text-gray-500">{{ timetable.start_time|string }} - {{ timetable.end_time|string }}</p>
+                                </div>
+                                <span class="text-xs bg-blue-600 px-2 py-1 rounded">{{ classroom.name }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-400 text-center py-8">No timetable sessions added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

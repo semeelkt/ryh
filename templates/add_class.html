@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Add Class - School Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-950">
+    <!-- Header -->
+    <nav class="bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{{ url_for('school_dashboard') }}" class="text-2xl font-bold text-blue-400">← Dashboard</a>
+            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-2xl mx-auto p-6">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Add New Class</h1>
+            <p class="text-gray-400">Create a classroom and assign teachers</p>
+        </div>
+
+        {% if error %}
+        <div class="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6 text-red-200">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        {% if success %}
+        <div class="bg-green-900/30 border border-green-700 rounded-lg p-6 mb-8">
+            <h3 class="font-semibold text-green-300 mb-4">✓ Class Created Successfully!</h3>
+            <div class="bg-gray-900 rounded-lg p-4 space-y-3">
+                <div>
+                    <p class="text-gray-400 text-sm">Class Name</p>
+                    <p class="text-white font-semibold text-lg">{{ class_name }}</p>
+                </div>
+                <div class="bg-green-900/20 border border-green-700 rounded-lg p-3">
+                    <p class="text-green-200 text-sm">The class is ready. You can upload students and assign timetables.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('add_class') }}" class="inline-block mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition">
+                Add Another Class
+            </a>
+        </div>
+        {% else %}
+
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8">
+            <form method="POST" action="{{ url_for('add_class') }}" class="space-y-6">
+                <!-- Class Name -->
+                <div>
+                    <label for="class_name" class="block text-sm font-medium text-gray-300 mb-2">Class Name</label>
+                    <input
+                        type="text"
+                        id="class_name"
+                        name="class_name"
+                        required
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
+                        placeholder="e.g., 1-A, 2-B, Class 10-A"
+                    >
+                </div>
+
+                <!-- Class Teacher (Optional) -->
+                <div>
+                    <label for="class_teacher_id" class="block text-sm font-medium text-gray-300 mb-2">
+                        Class Teacher (Optional)
+                    </label>
+                    <select
+                        id="class_teacher_id"
+                        name="class_teacher_id"
+                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
+                    >
+                        <option value="">-- None (Add later) --</option>
+                        {% if teachers %}
+                            {% for teacher in teachers %}
+                            <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                            {% endfor %}
+                        {% else %}
+                            <option disabled>No teachers available. Create teachers first.</option>
+                        {% endif %}
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Main teacher for this class. Will handle attendance.</p>
+                </div>
+
+                <!-- Subject Teachers (Optional) -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-3">
+                        Add Subject Teachers (Optional)
+                    </label>
+                    <p class="text-xs text-gray-400 mb-3">Select teachers who will teach specific subjects in this class</p>
+
+                    <div id="subject-teachers" class="space-y-3">
+                        <div class="bg-gray-800 rounded-lg p-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <select
+                                    name="subject_teacher_ids"
+                                    class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                >
+                                    <option value="">-- Select Teacher --</option>
+                                    {% if teachers %}
+                                        {% for teacher in teachers %}
+                                        <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+
+                                <input
+                                    type="text"
+                                    placeholder="e.g., Mathematics"
+                                    class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                                    ondblclick="this.parentElement.parentElement.remove()"
+                                >
+                            </div>
+                        </div>
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="addSubjectTeacher()"
+                        class="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg text-sm"
+                    >
+                        + Add Another Subject Teacher
+                    </button>
+                </div>
+
+                <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
+                    <p class="text-blue-300 text-sm">
+                        <strong>ℹ Tips:</strong><br>
+                        • Class Teacher can be assign later<br>
+                        • Subject Teachers can teach their subject in multiple classes<br>
+                        • Double-click to remove a subject teacher
+                    </p>
+                </div>
+
+                <button
+                    type="submit"
+                    {% if not teachers %}disabled{% endif %}
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200 {% if not teachers %}opacity-50 cursor-not-allowed{% endif %}"
+                >
+                    Create Class
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function addSubjectTeacher() {
+    const container = document.getElementById('subject-teachers');
+    const teachers = document.querySelector('select[name="subject_teacher_ids"] option');
+
+    const newDiv = document.createElement('div');
+    newDiv.className = 'bg-gray-800 rounded-lg p-4';
+    newDiv.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <select
+                name="subject_teacher_ids"
+                class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+            >
+                <option value="">-- Select Teacher --</option>
+                {%- for teacher in teachers -%}
+                <option value="{{ teacher.id }}">{{ teacher.username }}</option>
+                {%- endfor -%}
+            </select>
+
+            <input
+                type="text"
+                placeholder="e.g., Mathematics"
+                class="px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm"
+                ondblclick="this.parentElement.parentElement.remove()"
+            >
+        </div>
+    `;
+    container.appendChild(newDiv);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Attendance System{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-950">
+    <!-- Header -->
+    <nav class="bg-gray-900 border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-blue-400">Attendance System</h1>
+            <div class="flex items-center gap-4">
+                <span class="text-gray-400">{{ session.username }}</span>
+                <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <!-- Welcome Section -->
+        <div class="mb-8">
+            <h2 class="text-3xl font-bold mb-2">Welcome, {{ student.name }}</h2>
+            <p class="text-gray-400">View your attendance records and percentage</p>
+        </div>
+
+        <!-- Student Info Card -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <!-- Personal Info -->
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4">Personal Information</h3>
+                <div class="space-y-3">
+                    <div>
+                        <p class="text-gray-400 text-sm">Name</p>
+                        <p class="text-white font-semibold">{{ student.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Roll Number</p>
+                        <p class="text-white font-semibold">{{ student.roll_no }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Classroom</p>
+                        <p class="text-white font-semibold">Class {{ student.classroom.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400 text-sm">Parent Email</p>
+                        <p class="text-white font-semibold text-sm break-all">{{ student.parent_email }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Percentage -->
+            <div class="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-700 rounded-lg p-6">
+                <h3 class="text-lg font-semibold text-gray-300 mb-4">Attendance Status</h3>
+                <div class="text-center">
+                    <div class="text-5xl font-bold text-blue-300 mb-2" id="attendance-percentage">
+                        {{ attendance_data.percentage }}%
+                    </div>
+                    <p class="text-gray-300 mb-4">Overall Attendance</p>
+                    <div class="bg-gray-900 rounded-lg p-3 space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Present:</span>
+                            <span class="text-green-400 font-semibold" id="present-count">{{ attendance_data.present_count }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Absent:</span>
+                            <span class="text-red-400 font-semibold" id="absent-count">{{ attendance_data.absent_count }}</span>
+                        </div>
+                        <div class="flex justify-between border-t border-gray-700 pt-2 mt-2">
+                            <span class="text-gray-400">Total:</span>
+                            <span class="text-blue-400 font-semibold" id="total-count">{{ attendance_data.total_records }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Indicator -->
+        <div class="mb-8">
+            {% if attendance_data.percentage >= 75 %}
+            <div class="bg-green-900/30 border border-green-700 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-green-300 mb-2">✓ Good Attendance</h3>
+                <p class="text-green-200">Your attendance is above 75%. Keep it up!</p>
+            </div>
+            {% elif attendance_data.percentage >= 50 %}
+            <div class="bg-yellow-900/30 border border-yellow-700 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-yellow-300 mb-2">⚠ Moderate Attendance</h3>
+                <p class="text-yellow-200">Your attendance is between 50-75%. Try to attend more classes.</p>
+            </div>
+            {% else %}
+            <div class="bg-red-900/30 border border-red-700 rounded-lg p-4">
+                <h3 class="text-lg font-semibold text-red-300 mb-2">✗ Low Attendance</h3>
+                <p class="text-red-200">Your attendance is below 50%. It's important to attend classes regularly.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Attendance Chart -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-300 mb-4">Attendance Summary</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-800 rounded-lg p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-2">Present</p>
+                    <p class="text-3xl font-bold text-green-400">{{ attendance_data.present_count }}</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-2">Absent</p>
+                    <p class="text-3xl font-bold text-red-400">{{ attendance_data.absent_count }}</p>
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-2">Total Classes</p>
+                    <p class="text-3xl font-bold text-blue-400">{{ attendance_data.total_records }}</p>
+                </div>
+            </div>
+
+            <!-- Simple Bar Chart -->
+            <div class="mt-6">
+                <p class="text-gray-400 text-sm mb-3">Attendance Distribution</p>
+                <div class="flex gap-2 h-12">
+                    {% if attendance_data.total_records > 0 %}
+                    <div class="flex-1 bg-green-600 rounded-lg relative" style="flex-basis: {{ (attendance_data.present_count / attendance_data.total_records) * 100 }}%">
+                        <span class="absolute inset-0 flex items-center justify-center text-white text-sm font-bold">
+                            {% if (attendance_data.present_count / attendance_data.total_records) * 100 > 20 %}{{ (attendance_data.present_count / attendance_data.total_records * 100)|int }}%{% endif %}
+                        </span>
+                    </div>
+                    <div class="flex-1 bg-red-600 rounded-lg relative" style="flex-basis: {{ (attendance_data.absent_count / attendance_data.total_records) * 100 }}%">
+                        <span class="absolute inset-0 flex items-center justify-center text-white text-sm font-bold">
+                            {% if (attendance_data.absent_count / attendance_data.total_records) * 100 > 20 %}{{ (attendance_data.absent_count / attendance_data.total_records * 100)|int }}%{% endif %}
+                        </span>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-400 text-sm">No attendance records yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+            <h3 class="text-sm font-semibold text-gray-400 mb-2">Important Note</h3>
+            <p class="text-gray-400 text-sm">
+                Attendance is crucial for your academic success. Regular attendance helps you understand concepts better and stay engaged with your studies. If you have any concerns about your attendance, please contact your teacher or class advisor.
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Refresh attendance data every 30 seconds
+    function refreshAttendance() {
+        fetch('{{ url_for("get_student_attendance") }}')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('attendance-percentage').textContent = data.percentage + '%';
+                document.getElementById('present-count').textContent = data.present_count;
+                document.getElementById('absent-count').textContent = data.absent_count;
+                document.getElementById('total-count').textContent = data.total_records;
+            })
+            .catch(err => console.error('Error refreshing attendance:', err));
+    }
+
+    setInterval(refreshAttendance, 30000);
+</script>
+{% endblock %}

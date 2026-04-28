@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Class Attendance - School Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-950">
+    <!-- Header -->
+    <nav class="bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{{ url_for('school_attendance_overview') }}" class="text-2xl font-bold text-blue-400">← Back to Overview</a>
+            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Class {{ classroom.name }}</h1>
+            <p class="text-gray-400">Teacher: {% if classroom.class_teacher_user %}{{ classroom.class_teacher_user.username }}{% else %}Not assigned{% endif %}</p>
+        </div>
+
+        <!-- Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-700 rounded-lg p-6">
+                <p class="text-gray-300 text-sm">Total Students</p>
+                <p class="text-4xl font-bold text-blue-300">{{ student_attendance|length }}</p>
+            </div>
+            {% set total_records = student_attendance.values()|map(attribute='records')|map('length')|sum %}
+            <div class="bg-gradient-to-br from-green-900 to-green-800 border border-green-700 rounded-lg p-6">
+                <p class="text-gray-300 text-sm">Total Records</p>
+                <p class="text-4xl font-bold text-green-300">{{ total_records }}</p>
+            </div>
+            {% set total_present = [] %}
+            {% for data in student_attendance.values() %}
+                {% set _ = total_present.extend(data.records|selectattr('status', 'equalto', 'Present')|list) %}
+            {% endfor %}
+            <div class="bg-gradient-to-br from-yellow-900 to-yellow-800 border border-yellow-700 rounded-lg p-6">
+                <p class="text-gray-300 text-sm">Present</p>
+                <p class="text-4xl font-bold text-yellow-300">{{ total_present|length }}</p>
+            </div>
+            <div class="bg-gradient-to-br from-purple-900 to-purple-800 border border-purple-700 rounded-lg p-6">
+                <p class="text-gray-300 text-sm">Absent</p>
+                <p class="text-4xl font-bold text-purple-300">{{ total_records - total_present|length }}</p>
+            </div>
+        </div>
+
+        <!-- Students Attendance Table -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-800 border-b border-gray-700">
+                            <th class="text-left px-4 py-3 text-gray-300">Roll No</th>
+                            <th class="text-left px-4 py-3 text-gray-300">Name</th>
+                            <th class="text-center px-4 py-3 text-gray-300">Records</th>
+                            <th class="text-center px-4 py-3 text-gray-300">Present</th>
+                            <th class="text-center px-4 py-3 text-gray-300">Absent</th>
+                            <th class="text-center px-4 py-3 text-gray-300">Percentage</th>
+                            <th class="text-left px-4 py-3 text-gray-300">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student_id, data in student_attendance.items() %}
+                        <tr class="border-b border-gray-700 hover:bg-gray-800">
+                            <td class="px-4 py-3 text-gray-300">{{ data.student.roll_no }}</td>
+                            <td class="px-4 py-3 text-gray-300">{{ data.student.name }}</td>
+                            <td class="px-4 py-3 text-center text-gray-400">{{ data.records|length }}</td>
+                            <td class="px-4 py-3 text-center text-green-400">
+                                {{ data.records|selectattr('status', 'equalto', 'Present')|list|length }}
+                            </td>
+                            <td class="px-4 py-3 text-center text-red-400">
+                                {{ data.records|selectattr('status', 'equalto', 'Absent')|list|length }}
+                            </td>
+                            <td class="px-4 py-3 text-center font-semibold">
+                                {% if data.records %}
+                                    <span class="{% if data.percentage >= 75 %}text-green-400{% elif data.percentage >= 50 %}text-yellow-400{% else %}text-red-400{% endif %}">
+                                        {{ data.percentage }}%
+                                    </span>
+                                {% else %}
+                                    <span class="text-gray-500">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3">
+                                {% if data.percentage >= 75 %}
+                                    <span class="text-green-400 text-sm">✓ Good</span>
+                                {% elif data.percentage >= 50 %}
+                                    <span class="text-yellow-400 text-sm">⚠ Fair</span>
+                                {% elif data.percentage > 0 %}
+                                    <span class="text-red-400 text-sm">✗ Low</span>
+                                {% else %}
+                                    <span class="text-gray-500 text-sm">None</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if not student_attendance %}
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
+            <p class="text-gray-400">No students in this class</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

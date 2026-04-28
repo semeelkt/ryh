@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Attendance - School Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-950">
+    <!-- Header -->
+    <nav class="bg-gray-900 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <a href="{{ url_for('school_attendance_overview') }}" class="text-2xl font-bold text-blue-400">← Back to Overview</a>
+            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
+                Logout
+            </a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-6">
+        <div class="mb-8">
+            <h1 class="text-3xl font-bold mb-2">Teacher: {{ teacher.username }}</h1>
+            <p class="text-gray-400">Attendance records for all classes taught by this teacher</p>
+        </div>
+
+        <!-- Classes List -->
+        <div class="space-y-6">
+            {% for class_id, data in attendance_data.items() %}
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-lg font-bold text-blue-400">Class {{ data.class.name }}</h2>
+                    <a href="{{ url_for('school_attendance_by_class', class_id=class_id) }}"
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
+                        View Class Details →
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <p class="text-gray-400 text-sm">Students</p>
+                        <p class="text-2xl font-bold">{{ data.students|length }}</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <p class="text-gray-400 text-sm">Records</p>
+                        <p class="text-2xl font-bold">{{ data.records|length }}</p>
+                    </div>
+                    <div class="bg-gray-800 rounded-lg p-3">
+                        <p class="text-gray-400 text-sm">Last Entry</p>
+                        {% if data.records %}
+                            <p class="text-sm text-gray-300">{{ data.records[0].date }}</p>
+                        {% else %}
+                            <p class="text-sm text-gray-500">None</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Student Records -->
+                {% if data.students %}
+                <div class="mt-4">
+                    <p class="text-sm font-semibold text-gray-300 mb-3">Students:</p>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        {% for student in data.students %}
+                            {% set student_records = data.records|selectattr('student_id', 'equalto', student.id)|list %}
+                            <div class="bg-gray-800 rounded-lg p-3">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-gray-300 font-semibold">{{ student.name }} ({{ student.roll_no }})</span>
+                                    <span class="text-sm bg-gray-700 px-2 py-1 rounded">{{ student_records|length }} records</span>
+                                </div>
+                                {% if student_records %}
+                                    <div class="text-xs space-y-1">
+                                        {% for record in student_records[:3] %}
+                                        <div class="flex justify-between text-gray-400">
+                                            <span>{{ record.date }}</span>
+                                            <span class="{% if record.status == 'Present' %}text-green-400{% else %}text-red-400{% endif %}">
+                                                {{ record.status }}
+                                            </span>
+                                        </div>
+                                        {% endfor %}
+                                        {% if student_records|length > 3 %}
+                                        <p class="text-gray-500">...and {{ student_records|length - 3 }} more</p>
+                                        {% endif %}
+                                    </div>
+                                {% else %}
+                                    <p class="text-xs text-gray-500">No records</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% else %}
+                <p class="text-gray-500 text-sm italic">No students in this class</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not attendance_data %}
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-12 text-center">
+            <p class="text-gray-400">No classes for this teacher</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
