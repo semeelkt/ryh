@@ -675,12 +675,20 @@ def register_routes(app):
             attendance_list = data.get('attendance_list', [])  # List of {student_id, status}
 
             # Verify classroom belongs to teacher
-            classroom = Classroom.query.filter_by(
-                id=classroom_id,
-                teacher_id=user.id
-            ).first()
-
+            classroom = Classroom.query.get(classroom_id)
             if not classroom:
+                return jsonify({'error': 'Classroom not found'}), 404
+
+            # Check if user is class teacher or subject teacher
+            is_authorized = classroom.class_teacher_id == user.id
+            if not is_authorized:
+                teacher_class = TeacherClass.query.filter_by(
+                    teacher_id=user.id,
+                    classroom_id=classroom_id
+                ).first()
+                is_authorized = teacher_class is not None
+
+            if not is_authorized:
                 return jsonify({'error': 'Unauthorized'}), 403
 
             try:
