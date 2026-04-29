@@ -111,48 +111,56 @@
             <div class="grid grid-cols-4 gap-6">
                 <!-- Total Teachers -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chalkboard-user text-purple-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Teachers</p>
-                            <p class="text-4xl font-bold text-purple-600 mt-2">{{ total_teachers }}</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_teachers }}</p>
                         </div>
-                        <div class="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center text-2xl">👨‍🏫</div>
                     </div>
                     <a href="{{ url_for('add_teacher') }}" class="text-purple-600 text-sm font-semibold mt-4 hover:text-purple-700">View all teachers →</a>
                 </div>
 
                 <!-- Total Classes -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-school text-green-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Classes</p>
-                            <p class="text-4xl font-bold text-green-600 mt-2">{{ total_classes }}</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_classes }}</p>
                         </div>
-                        <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center text-2xl">🏫</div>
                     </div>
                     <a href="{{ url_for('add_class') }}" class="text-green-600 text-sm font-semibold mt-4 hover:text-green-700">View all classes →</a>
                 </div>
 
                 <!-- Total Students -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-users text-blue-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Students</p>
-                            <p class="text-4xl font-bold text-blue-600 mt-2">{{ total_students }}</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_students }}</p>
                         </div>
-                        <div class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center text-2xl">👥</div>
                     </div>
                     <a href="{{ url_for('school_upload_students') }}" class="text-blue-600 text-sm font-semibold mt-4 hover:text-blue-700">View all students →</a>
                 </div>
 
                 <!-- Today's Attendance -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition">
-                    <div class="flex items-start justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-chart-pie text-orange-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Today's Attendance</p>
-                            <p class="text-4xl font-bold text-orange-600 mt-2">85%</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">85%</p>
                         </div>
-                        <div class="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center text-2xl">📊</div>
                     </div>
                     <a href="{{ url_for('school_attendance_overview') }}" class="text-orange-600 text-sm font-semibold mt-4 hover:text-orange-700">View attendance →</a>
                 </div>
@@ -165,7 +173,9 @@
                     <h2 class="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
                     <div class="grid grid-cols-2 gap-4">
                         <a href="{{ url_for('add_teacher') }}" class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition">
-                            <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center text-white text-xl">➕</div>
+                            <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
                             <div>
                                 <p class="font-semibold text-gray-900">Add Teacher</p>
                                 <p class="text-sm text-gray-600">Register new teacher</p>
@@ -173,7 +183,9 @@
                         </a>
 
                         <a href="{{ url_for('add_class') }}" class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-green-500 hover:bg-green-50 transition">
-                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xl">➕</div>
+                            <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                                <i class="fas fa-plus"></i>
+                            </div>
                             <div>
                                 <p class="font-semibold text-gray-900">Add Class</p>
                                 <p class="text-sm text-gray-600">Create new class</p>
@@ -181,7 +193,9 @@
                         </a>
 
                         <a href="{{ url_for('school_upload_students') }}" class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition">
-                            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl">☁️</div>
+                            <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
                             <div>
                                 <p class="font-semibold text-gray-900">Upload Students</p>
                                 <p class="text-sm text-gray-600">Import student data</p>
@@ -189,7 +203,9 @@
                         </a>
 
                         <a href="{{ url_for('school_attendance_overview') }}" class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-orange-500 hover:bg-orange-50 transition">
-                            <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xl">📋</div>
+                            <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center text-white text-xl flex-shrink-0">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
                             <div>
                                 <p class="font-semibold text-gray-900">View Attendance</p>
                                 <p class="text-sm text-gray-600">Check attendance</p>
@@ -203,7 +219,9 @@
                     <h2 class="text-xl font-bold text-gray-900 mb-6">Recent Activity</h2>
                     <div class="space-y-4">
                         <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-sm">👤</div>
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                                <i class="fas fa-user-check text-green-600 text-xs"></i>
+                            </div>
                             <div class="flex-1">
                                 <p class="text-sm font-semibold text-gray-900">New student added</p>
                                 <p class="text-xs text-gray-500">2h ago</p>
@@ -211,7 +229,9 @@
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm">✓</div>
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                                <i class="fas fa-check-circle text-blue-600 text-xs"></i>
+                            </div>
                             <div class="flex-1">
                                 <p class="text-sm font-semibold text-gray-900">Attendance updated</p>
                                 <p class="text-xs text-gray-500">4h ago</p>
@@ -219,7 +239,9 @@
                             </div>
                         </div>
                         <div class="flex items-start gap-3">
-                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-sm">🏫</div>
+                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-sm flex-shrink-0">
+                                <i class="fas fa-school text-orange-600 text-xs"></i>
+                            </div>
                             <div class="flex-1">
                                 <p class="text-sm font-semibold text-gray-900">New class created</p>
                                 <p class="text-xs text-gray-500">1d ago</p>
@@ -243,7 +265,9 @@
                         {% for classroom in classrooms[:5] %}
                         <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">🎓</div>
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-graduation-cap text-green-600"></i>
+                                </div>
                                 <div>
                                     <p class="font-semibold text-gray-900">Class {{ classroom.name }}</p>
                                     <p class="text-xs text-gray-600">Teacher: {% if classroom.class_teacher_user %}{{ classroom.class_teacher_user.username }}{% else %}Not assigned{% endif %}</p>
@@ -268,7 +292,9 @@
                         {% for teacher in teachers[:5] %}
                         <div class="flex items-center justify-between p-4 hover:bg-gray-50 rounded-lg transition cursor-pointer">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">👨‍🏫</div>
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-chalkboard-user text-purple-600"></i>
+                                </div>
                                 <div>
                                     <p class="font-semibold text-gray-900">{{ teacher.username }}</p>
                                     <p class="text-xs text-gray-600">

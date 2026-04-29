@@ -101,59 +101,53 @@
         <!-- Content -->
         <div class="flex-1 p-8 space-y-8 overflow-y-auto">
             <!-- Quick Action Cards -->
-            <div class="grid grid-cols-6 gap-4">
-                <a href="{{ url_for('manage_timetable') }}" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-blue-500 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-blue-200 transition">
-                        <i class="fas fa-calendar text-blue-600"></i>
+            <div class="grid grid-cols-4 gap-4">
+                <a href="{{ url_for('manage_timetable') }}" class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition">
+                    <div class="flex flex-col items-start gap-3">
+                        <div class="w-14 h-14 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-calendar-alt text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Manage Timetable</h3>
+                            <p class="text-xs text-gray-600 mt-1">View your schedule</p>
+                        </div>
                     </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">Timetable</h3>
-                    <p class="text-xs text-gray-600 mt-1">View your class schedule</p>
-                    <span class="text-blue-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
                 </a>
 
-                <a href="{{ url_for('upload_students') }}" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-green-500 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-green-200 transition">
-                        <i class="fas fa-cloud-arrow-up text-green-600"></i>
+                <a href="{{ url_for('mark_attendance') }}" class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition">
+                    <div class="flex flex-col items-start gap-3">
+                        <div class="w-14 h-14 bg-green-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check-circle text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Mark Attendance</h3>
+                            <p class="text-xs text-gray-600 mt-1">Record attendance</p>
+                        </div>
                     </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">Upload</h3>
-                    <p class="text-xs text-gray-600 mt-1">Upload study materials</p>
-                    <span class="text-green-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
                 </a>
 
-                <a href="{{ url_for('mark_attendance') }}" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-purple-500 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-purple-200 transition">
-                        <i class="fas fa-check-circle text-purple-600"></i>
+                <a href="{{ url_for('view_attendance_records') }}" class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition">
+                    <div class="flex flex-col items-start gap-3">
+                        <div class="w-14 h-14 bg-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-folder-open text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">View Records</h3>
+                            <p class="text-xs text-gray-600 mt-1">Check reports</p>
+                        </div>
                     </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">Mark Attendance</h3>
-                    <p class="text-xs text-gray-600 mt-1">Mark attendance for classes</p>
-                    <span class="text-purple-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
                 </a>
 
-                <a href="{{ url_for('view_attendance_records') }}" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-orange-500 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-orange-200 transition">
-                        <i class="fas fa-folder text-orange-600"></i>
+                <a href="{{ url_for('upload_students') }}" class="bg-white rounded-lg p-6 border border-gray-200 hover:shadow-lg transition">
+                    <div class="flex flex-col items-start gap-3">
+                        <div class="w-14 h-14 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-cloud-upload-alt text-white text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 text-sm">Upload Materials</h3>
+                            <p class="text-xs text-gray-600 mt-1">Add resources</p>
+                        </div>
                     </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">Records</h3>
-                    <p class="text-xs text-gray-600 mt-1">View attendance and records</p>
-                    <span class="text-orange-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
-                </a>
-
-                <a href="#" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-blue-500 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-blue-200 transition">
-                        <i class="fas fa-users text-blue-600"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">My Classes</h3>
-                    <p class="text-xs text-gray-600 mt-1">Manage your classes</p>
-                    <span class="text-blue-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
-                </a>
-
-                <a href="{{ url_for('index') }}" class="bg-white rounded-lg p-5 border border-gray-200 hover:border-gray-400 hover:shadow-md transition flex flex-col items-center text-center group cursor-pointer">
-                    <div class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl mb-3 group-hover:bg-gray-200 transition">
-                        <i class="fas fa-sync text-gray-600"></i>
-                    </div>
-                    <h3 class="font-semibold text-gray-900 text-sm">Refresh</h3>
-                    <p class="text-xs text-gray-600 mt-1">Refresh the dashboard</p>
-                    <span class="text-gray-600 text-sm mt-3 opacity-0 group-hover:opacity-100 transition">→</span>
                 </a>
             </div>
 
@@ -162,7 +156,9 @@
                 <!-- Current Session -->
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
                     <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                        <i class="fas fa-clock text-blue-600"></i>
+                        <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-white"></i>
+                        </div>
                         Current Session
                     </h2>
                     <div id="session-status" class="bg-gray-50 rounded-lg p-8 text-center">
@@ -176,7 +172,9 @@
                 <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
                     <div class="flex items-center justify-between mb-6">
                         <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <i class="fas fa-graduation-cap text-purple-600"></i>
+                            <div class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-graduation-cap text-white"></i>
+                            </div>
                             My Classes
                         </h2>
                         <a href="#" class="text-blue-600 text-sm font-semibold hover:text-blue-700">View all classes →</a>
@@ -187,8 +185,8 @@
                         <div class="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-gray-300 transition">
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg {% if loop.index % 2 == 0 %}bg-green-100{% else %}bg-purple-100{% endif %}">
-                                        {% if loop.index % 2 == 0 %}<i class="fas fa-users {% if loop.index % 2 == 0 %}text-green-600{% else %}text-purple-600{% endif %}"></i>{% else %}<i class="fas fa-graduation-cap {% if loop.index % 2 == 0 %}text-green-600{% else %}text-purple-600{% endif %}"></i>{% endif %}
+                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-lg {% if loop.index % 2 == 0 %}bg-green-500{% else %}bg-purple-500{% endif %}">
+                                        {% if loop.index % 2 == 0 %}<i class="fas fa-users {% if loop.index % 2 == 0 %}text-white{% else %}text-white{% endif %}"></i>{% else %}<i class="fas fa-graduation-cap {% if loop.index % 2 == 0 %}text-white{% else %}text-white{% endif %}"></i>{% endif %}
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-gray-900">Class {{ classroom.name }}</h4>
@@ -208,44 +206,53 @@
             </div>
 
             <!-- Stats -->
-            <div class="grid grid-cols-3 gap-6">
-                <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                    <div class="flex items-center justify-between">
+            <div class="grid grid-cols-4 gap-4">
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-users text-purple-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Classes</p>
-                            <p class="text-4xl font-bold text-blue-600 mt-2">{{ classrooms|length }}</p>
-                            <p class="text-xs text-gray-500 mt-2">Classes assigned to you</p>
-                        </div>
-                        <div class="w-16 h-16 bg-blue-100 rounded-lg flex items-center justify-center text-3xl">
-                            <i class="fas fa-book text-blue-600"></i>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ classrooms|length }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                    <div class="flex items-center justify-between">
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-book text-green-600 text-3xl"></i>
+                        </div>
                         <div>
                             <p class="text-gray-600 text-sm font-medium">Total Students</p>
                             {% set total_students = classrooms|map(attribute='students')|map('length')|sum %}
-                            <p class="text-4xl font-bold text-green-600 mt-2">{{ total_students }}</p>
-                            <p class="text-xs text-gray-500 mt-2">Across all your classes</p>
-                        </div>
-                        <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center text-3xl">
-                            <i class="fas fa-users text-green-600"></i>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_students }}</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg p-6 border border-gray-200 shadow-sm">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-600 text-sm font-medium">Timetable Sessions</p>
-                            {% set total_sessions = classrooms|map(attribute='timetables')|map('length')|sum %}
-                            <p class="text-4xl font-bold text-orange-600 mt-2">{{ total_sessions }}</p>
-                            <p class="text-xs text-gray-500 mt-2">Scheduled sessions</p>
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-tie text-blue-600 text-3xl"></i>
                         </div>
-                        <div class="w-16 h-16 bg-orange-100 rounded-lg flex items-center justify-center text-3xl">
-                            <i class="fas fa-calendar text-orange-600"></i>
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">My Sessions</p>
+                            {% set total_sessions = classrooms|map(attribute='timetables')|map('length')|sum %}
+                            <p class="text-3xl font-bold text-gray-900 mt-1">{{ total_sessions }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg p-6 border border-gray-200">
+                    <div class="flex items-center gap-4">
+                        <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-check-square text-orange-600 text-3xl"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm font-medium">Attendance Rate</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">85%</p>
                         </div>
                     </div>
                 </div>
