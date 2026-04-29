@@ -95,6 +95,51 @@
             {% endif %}
         </div>
 
+        <!-- Attendance Percentages Overview -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+            <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 text-center">
+                <p class="text-gray-400 font-semibold text-sm">Overall Percentage</p>
+                <p class="text-4xl font-bold text-cyan-400 mt-2">{{ attendance_data.percentage }}%</p>
+            </div>
+        </div>
+
+        <!-- Subject-wise Attendance -->
+        <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
+            <h3 class="text-lg font-semibold text-gray-300 mb-6">Subject-wise Attendance Breakdown</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-gray-800 border-b border-gray-700">
+                            <th class="text-left py-4 px-6 text-gray-300 font-semibold text-sm">SUBJECT</th>
+                            <th class="text-left py-4 px-6 text-gray-300 font-semibold text-sm">ATTENDANCE %</th>
+                            <th class="text-left py-4 px-6 text-gray-300 font-semibold text-sm">TOTAL ATTENDANCE</th>
+                            <th class="text-left py-4 px-6 text-gray-300 font-semibold text-sm">NOT PRESENT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if attendance_data.subject_breakdown %}
+                            {% for subject in attendance_data.subject_breakdown %}
+                            <tr class="border-b border-gray-800 hover:bg-gray-800/50 transition-colors">
+                                <td class="py-4 px-6 text-blue-400 font-semibold text-sm">{{ subject.subject }}</td>
+                                <td class="py-4 px-6 text-sm">
+                                    <span class="{% if subject.percentage >= 75 %}text-green-400{% elif subject.percentage >= 50 %}text-yellow-400{% else %}text-red-400{% endif %} font-semibold">
+                                        {{ "%.2f"|format(subject.percentage) }}%
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-white font-semibold text-sm">{{ subject.total }}</td>
+                                <td class="py-4 px-6 text-orange-400 font-semibold text-sm">{{ subject.absent }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-8 text-gray-400">No attendance records found</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- Attendance Chart -->
         <div class="bg-gray-900 border border-gray-800 rounded-lg p-6 mb-8">
             <h3 class="text-lg font-semibold text-gray-300 mb-4">Attendance Summary</h3>

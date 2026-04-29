@@ -140,20 +140,48 @@ def process_excel_upload(file_path, classroom_id):
 
 def get_student_attendance_data(student_id):
     """
-    Get attendance data for a student including percentage.
+    Get attendance data for a student including percentage and subject breakdown.
 
     Args:
         student_id: The ID of the student
 
     Returns:
-        Dictionary with attendance info
+        Dictionary with attendance info and subject-wise breakdown
     """
     student = Student.query.get(student_id)
     if not student:
         return None
 
     percentage = calculate_attendance_percentage(student_id)
-    attendance_records = Attendance.query.filter_by(student_id=student_id).all()
+    attendance_records = Attendance.query.filter_by(student_id=student_id).order_by(Attendance.date.desc()).all()
+
+    # Calculate subject-wise attendance
+    subject_attendance = {}
+    for record in attendance_records:
+        subject = record.period_name or 'General'
+        if subject not in subject_attendance:
+            subject_attendance[subject] = {
+                'total': 0,
+                'present': 0,
+                'absent': 0
+            }
+        subject_attendance[subject]['total'] += 1
+        if record.status == 'Present':
+            subject_attendance[subject]['present'] += 1
+        else:
+            subject_attendance[subject]['absent'] += 1
+
+    # Convert to list and calculate percentages
+    subject_breakdown = []
+    for subject, data in sorted(subject_attendance.items()):
+        percentage_subj = (data['present'] / data['total'] * 100) if data['total'] > 0 else 0
+        subject_breakdown.append({
+            'subject': subject,
+            'total': data['total'],
+            'present': data['present'],
+            'absent': data['absent'],
+            'percentage': round(percentage_subj, 2)
+        })
 
     return {
         'student_id': student_id,
@@ -163,7 +191,10 @@ def get_student_attendance_data(student_id):
         'percentage': percentage,
         'total_records': len(attendance_records),
         'present_count': sum(1 for r in attendance_records if r.status == 'Present'),
-        'absent_count': sum(1 for r in attendance_records if r.status == 'Absent')
+        'absent_count': sum(1 for r in attendance_records if r.status == 'Absent'),
+        'subject_breakdown': subject_breakdown,
+        'medical_percentage': 0,  # Can be updated if medical leaves are tracked
+        'official_percentage': 0  # Can be updated if official leaves are tracked
     }
 
 def get_classroom_students(classroom_id):

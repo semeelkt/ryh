@@ -1058,6 +1058,22 @@ def register_routes(app):
 
         attendance_data = get_student_attendance_data(student.id)
 
+        # Ensure attendance_data has default values if None
+        if not attendance_data:
+            attendance_data = {
+                'student_id': student.id,
+                'name': student.name,
+                'roll_no': student.roll_no,
+                'classroom_id': student.classroom_id,
+                'percentage': 0,
+                'total_records': 0,
+                'present_count': 0,
+                'absent_count': 0,
+                'subject_breakdown': [],
+                'medical_percentage': 0,
+                'official_percentage': 0
+            }
+
         return render_template('student_dashboard.html', student=student, attendance_data=attendance_data)
 
     @app.route('/api/student/attendance', methods=['GET'])
