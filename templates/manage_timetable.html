@@ -141,7 +141,10 @@
                                     <p class="text-sm text-gray-400">{{ classroom.name }} • {{ timetable.day_of_week }}</p>
                                     <p class="text-sm text-gray-500">{{ timetable.start_time|string }} - {{ timetable.end_time|string }}</p>
                                 </div>
-                                <span class="text-xs bg-blue-600 px-2 py-1 rounded">{{ classroom.name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs bg-blue-600 px-2 py-1 rounded">{{ classroom.name }}</span>
+                                    <button class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white delete-timetable" data-id="{{ timetable.id }}">Delete</button>
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -154,4 +157,29 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Delete timetable
+    document.querySelectorAll('.delete-timetable').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (confirm('Are you sure you want to delete this timetable session?')) {
+                const timetableId = btn.getAttribute('data-id');
+                try {
+                    const response = await fetch(`/teacher/delete-timetable/${timetableId}`, {
+                        method: 'POST'
+                    });
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        alert('Failed to delete timetable');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error deleting timetable');
+                }
+            }
+        });
+    });
+</script>
 {% endblock %}

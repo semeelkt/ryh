@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, session, redirect, url_for
+from flask import render_template, request, jsonify, session, redirect, url_for, send_file
 from models import db, User, Classroom, Student, Attendance, Timetable, TeacherClass
 from utils import (
     calculate_attendance_percentage,
@@ -9,6 +9,8 @@ from utils import (
 from datetime import datetime, date, time
 from functools import wraps
 import os
+import csv
+import io
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = 'uploads'
@@ -387,12 +389,24 @@ def register_routes(app):
                 )
 
             # Verify teacher owns this classroom
-            classroom = Classroom.query.filter_by(
-                id=classroom_id,
-                teacher_id=user.id
-            ).first()
-
+            classroom = Classroom.query.get(classroom_id)
             if not classroom:
+                return render_template(
+                    'upload_students.html',
+                    classrooms=classrooms,
+                    error='Classroom not found or unauthorized'
+                )
+
+            # Check if user is class teacher or subject teacher
+            is_authorized = classroom.class_teacher_id == user.id
+            if not is_authorized:
+                teacher_class = TeacherClass.query.filter_by(
+                    teacher_id=user.id,
+                    classroom_id=classroom_id
+                ).first()
+                is_authorized = teacher_class is not None
+
+            if not is_authorized:
                 return render_template(
                     'upload_students.html',
                     classrooms=classrooms,
@@ -506,6 +520,174 @@ def register_routes(app):
 
         return jsonify(students_data)
 
+    @app.route('/api/classroom/<int:classroom_id>/teacher-subjects', methods=['GET'])
+    @login_required
+    @role_required('teacher')
+    def get_teacher_subjects(classroom_id):
+        """Get subjects taught by the logged-in teacher for a specific classroom."""
+        user = User.query.get(session['user_id'])
+
+        # Verify teacher has access to this classroom
+        classroom = Classroom.query.get(classroom_id)
+        if not classroom:
+            return jsonify([]), 404
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom_id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify([]), 403
+
+        # Get all timetables for this classroom taught by this teacher
+        # Since timetables don't have teacher info, we'll get unique subjects
+        timetables = Timetable.query.filter_by(classroom_id=classroom_id).all()
+        subjects = sorted(set([t.subject_name for t in timetables]))
+
+        return jsonify(subjects)
+
+    @app.route('/api/student/<int:student_id>/update-credentials', methods=['POST'])
+    @login_required
+    @role_required('teacher')
+    def update_student_credentials(student_id):
+        """Update student username and password."""
+        user = User.query.get(session['user_id'])
+        student = Student.query.get(student_id)
+
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
+
+        # Verify teacher has access to this student's classroom
+        classroom = student.classroom
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom.id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        data = request.get_json()
+        new_username = data.get('username', '').strip()
+        new_password = data.get('password', '').strip()
+
+        if not new_username or not new_password:
+            return jsonify({'error': 'Username and password are required'}), 400
+
+        # Check if new username already exists (and is not the current user)
+        if student.user_id:
+            current_user = User.query.get(student.user_id)
+            if current_user.username != new_username:
+                existing_user = User.query.filter_by(username=new_username).first()
+                if existing_user:
+                    return jsonify({'error': 'Username already exists'}), 400
+        else:
+            existing_user = User.query.filter_by(username=new_username).first()
+            if existing_user:
+                return jsonify({'error': 'Username already exists'}), 400
+
+        # Update or create user account
+        if student.user_id:
+            user_account = User.query.get(student.user_id)
+        else:
+            user_account = User(role='student')
+            db.session.add(user_account)
+            db.session.flush()
+            student.user_id = user_account.id
+
+        user_account.username = new_username
+        user_account.set_password(new_password)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    @app.route('/api/student/<int:student_id>/delete', methods=['POST'])
+    @login_required
+    @role_required('teacher')
+    def delete_student(student_id):
+        """Delete a student."""
+        user = User.query.get(session['user_id'])
+        student = Student.query.get(student_id)
+
+        if not student:
+            return jsonify({'error': 'Student not found'}), 404
+
+        # Verify teacher has access to this student's classroom
+        classroom = student.classroom
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom.id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Delete associated user account if exists
+        if student.user_id:
+            user_account = User.query.get(student.user_id)
+            if user_account:
+                db.session.delete(user_account)
+
+        # Delete student (cascade will delete attendance records)
+        db.session.delete(student)
+        db.session.commit()
+
+        return jsonify({'success': True})
+
+    @app.route('/api/classroom/<int:classroom_id>/student-credentials', methods=['GET'])
+    @login_required
+    @role_required('teacher')
+    def get_student_credentials(classroom_id):
+        """Get student credentials (username and password) for a classroom."""
+        user = User.query.get(session['user_id'])
+
+        # Verify teacher has access to this classroom
+        classroom = Classroom.query.get(classroom_id)
+        if not classroom:
+            return jsonify({'error': 'Classroom not found'}), 404
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom_id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        students = Student.query.filter_by(classroom_id=classroom_id).all()
+        students_data = [
+            {
+                'id': s.id,
+                'name': s.name,
+                'roll_no': s.roll_no,
+                'username': s.roll_no,
+                'password': f'student_{s.roll_no}',
+                'parent_email': s.parent_email
+            }
+            for s in students
+        ]
+
+        return jsonify(students_data)
+
     @app.route('/teacher/manage-timetable', methods=['GET', 'POST'])
     @login_required
     @role_required('teacher')
@@ -529,16 +711,28 @@ def register_routes(app):
                 )
 
             # Verify classroom belongs to teacher
-            classroom = Classroom.query.filter_by(
-                id=classroom_id,
-                teacher_id=user.id
-            ).first()
-
+            classroom = Classroom.query.get(classroom_id)
             if not classroom:
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
                     error='Class not found'
+                )
+
+            # Check if user is class teacher or subject teacher
+            is_authorized = classroom.class_teacher_id == user.id
+            if not is_authorized:
+                teacher_class = TeacherClass.query.filter_by(
+                    teacher_id=user.id,
+                    classroom_id=classroom_id
+                ).first()
+                is_authorized = teacher_class is not None
+
+            if not is_authorized:
+                return render_template(
+                    'manage_timetable.html',
+                    classrooms=classrooms,
+                    error='Unauthorized access'
                 )
 
             # Check if slot already exists
@@ -590,6 +784,37 @@ def register_routes(app):
                 )
 
         return render_template('manage_timetable.html', classrooms=classrooms)
+
+    @app.route('/teacher/delete-timetable/<int:timetable_id>', methods=['POST'])
+    @login_required
+    @role_required('teacher')
+    def delete_timetable(timetable_id):
+        """Delete a timetable session."""
+        user = User.query.get(session['user_id'])
+        timetable = Timetable.query.get(timetable_id)
+
+        if not timetable:
+            return jsonify({'error': 'Timetable not found'}), 404
+
+        # Verify teacher has access to this classroom
+        classroom = timetable.classroom
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom.id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        db.session.delete(timetable)
+        db.session.commit()
+
+        return jsonify({'success': True})
 
     @app.route('/teacher/attendance-records', methods=['GET'])
     @login_required
@@ -659,6 +884,90 @@ def register_routes(app):
         db.session.commit()
 
         return jsonify({'success': True})
+
+    @app.route('/api/classroom/<int:classroom_id>/attendance-report', methods=['GET'])
+    @login_required
+    @role_required('teacher')
+    def download_attendance_report(classroom_id):
+        """Download attendance report as CSV for a classroom."""
+        user = User.query.get(session['user_id'])
+
+        # Verify teacher has access to this classroom
+        classroom = Classroom.query.get(classroom_id)
+        if not classroom:
+            return jsonify({'error': 'Classroom not found'}), 404
+
+        # Check if user is class teacher or subject teacher
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom_id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
+        # Get all students in classroom
+        students = Student.query.filter_by(classroom_id=classroom_id).all()
+        student_ids = [s.id for s in students]
+
+        # Get all attendance records
+        records = Attendance.query.filter(
+            Attendance.student_id.in_(student_ids)
+        ).order_by(Attendance.student_id, Attendance.date).all()
+
+        # Create CSV in memory
+        output = io.StringIO()
+        writer = csv.writer(output)
+
+        # Write header
+        writer.writerow([
+            'Roll No',
+            'Student Name',
+            'Date',
+            'Period/Subject',
+            'Status',
+            'Parent Email'
+        ])
+
+        # Write student records
+        for student in students:
+            student_records = [r for r in records if r.student_id == student.id]
+            if student_records:
+                for record in student_records:
+                    writer.writerow([
+                        student.roll_no,
+                        student.name,
+                        record.date,
+                        record.period_name or 'General',
+                        record.status,
+                        student.parent_email
+                    ])
+            else:
+                # Include students with no records
+                writer.writerow([
+                    student.roll_no,
+                    student.name,
+                    '',
+                    '',
+                    'No records',
+                    student.parent_email
+                ])
+
+        # Convert to bytes and return as file download
+        output.seek(0)
+        mem = io.BytesIO()
+        mem.write(output.getvalue().encode('utf-8'))
+        mem.seek(0)
+
+        return send_file(
+            mem,
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f'attendance_{classroom.name}_{datetime.now().strftime("%Y%m%d")}.csv'
+        )
 
     @app.route('/mark_attendance', methods=['GET', 'POST'])
     @login_required

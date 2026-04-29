@@ -48,12 +48,12 @@
 
                 <div>
                     <label for="period_name" class="block text-sm font-medium text-gray-300 mb-2">Period/Subject</label>
-                    <input
-                        type="text"
+                    <select
                         id="period_name"
-                        placeholder="e.g., Mathematics"
                         class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
                     >
+                        <option value="">-- Select Subject --</option>
+                    </select>
                 </div>
             </div>
 
@@ -117,10 +117,11 @@
         if (!classroomId) {
             container.classList.add('hidden');
             noStudents.classList.remove('hidden');
+            document.getElementById('period_name').innerHTML = '<option value="">-- Select Subject --</option>';
             return;
         }
 
-        // Simulate loading students (in real app, this would fetch from API)
+        // Load students
         fetch(`/api/classroom/${classroomId}/students`)
             .then(r => r.json())
             .then(data => {
@@ -131,8 +132,32 @@
             })
             .catch(err => {
                 console.error('Error loading students:', err);
-                // Fallback: show message
                 noStudents.textContent = 'Unable to load students. Please try again.';
+            });
+
+        // Load subjects for this classroom
+        fetch(`/api/classroom/${classroomId}/teacher-subjects`)
+            .then(r => r.json())
+            .then(subjects => {
+                const select = document.getElementById('period_name');
+                select.innerHTML = '<option value="">-- Select Subject --</option>';
+                if (subjects.length > 0) {
+                    subjects.forEach(subject => {
+                        const option = document.createElement('option');
+                        option.value = subject;
+                        option.textContent = subject;
+                        select.appendChild(option);
+                    });
+                } else {
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = '-- No subjects assigned --';
+                    option.disabled = true;
+                    select.appendChild(option);
+                }
+            })
+            .catch(err => {
+                console.error('Error loading subjects:', err);
             });
     }
 
