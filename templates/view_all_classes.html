@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}All Classes - School Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="bg-white border-b border-gray-200 px-8 py-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">All Classes</h1>
+                <p class="text-gray-600 mt-1">Complete list of classes with assigned teachers</p>
+            </div>
+            <a href="{{ url_for('school_dashboard') }}" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-8">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+            <div class="p-6">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-school text-green-600 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-lg font-bold text-gray-900">Total Classes</p>
+                        <p class="text-2xl font-bold text-green-600">{{ classrooms|length }}</p>
+                    </div>
+                </div>
+
+                {% if classrooms %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for classroom in classrooms %}
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg hover:border-green-300 transition">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900">Class {{ classroom.name }}</h3>
+                                <p class="text-sm text-gray-600 mt-1">
+                                    <i class="fas fa-chalkboard-user text-green-600 mr-2"></i>
+                                    Teacher: <strong>
+                                        {% if classroom.class_teacher_user %}
+                                            {{ classroom.class_teacher_user.username }}
+                                        {% else %}
+                                            <span class="text-red-500">Not assigned</span>
+                                        {% endif %}
+                                    </strong>
+                                </p>
+                            </div>
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <i class="fas fa-graduation-cap text-green-600"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-gray-50 rounded p-3 mb-4">
+                            <p class="text-sm font-semibold text-gray-700">
+                                <i class="fas fa-users text-gray-600 mr-2"></i>
+                                Students: <span class="text-green-600">{{ classroom.students|length }}</span>
+                            </p>
+                        </div>
+
+                        <a href="{{ url_for('school_dashboard') }}" class="text-green-600 hover:text-green-800 font-semibold text-sm">View Details →</a>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-school text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-600 font-semibold">No classes found</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f3f4f6;
+    }
+</style>
+{% endblock %}

@@ -1190,6 +1190,37 @@ def register_routes(app):
             student_attendance=student_attendance
         )
 
+    @app.route('/school/view-all-teachers', methods=['GET'])
+    @login_required
+    @role_required('admin')
+    def view_all_teachers():
+        """View all teachers in the school."""
+        teachers = User.query.filter_by(role='teacher').all()
+        return render_template('view_all_teachers.html', teachers=teachers)
+
+    @app.route('/school/view-all-classes', methods=['GET'])
+    @login_required
+    @role_required('admin')
+    def view_all_classes():
+        """View all classes in the school with their assigned teachers."""
+        classrooms = Classroom.query.all()
+        return render_template('view_all_classes.html', classrooms=classrooms)
+
+    @app.route('/school/view-all-students', methods=['GET'])
+    @login_required
+    @role_required('admin')
+    def view_all_students():
+        """View all students organized by class."""
+        classrooms = Classroom.query.all()
+        class_students = {}
+        for classroom in classrooms:
+            students = Student.query.filter_by(classroom_id=classroom.id).all()
+            class_students[classroom.id] = {
+                'classroom': classroom,
+                'students': students
+            }
+        return render_template('view_all_students.html', class_students=class_students, classrooms=classrooms)
+
     # ==================== Admin Routes (Optional) ====================
     @app.route('/admin/setup', methods=['GET', 'POST'])
     def admin_setup():
