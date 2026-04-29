@@ -912,7 +912,7 @@ def register_routes(app):
     @login_required
     @role_required('teacher')
     def download_attendance_report(classroom_id):
-        """Download attendance report as CSV for a classroom."""
+        """Download attendance report as CSV for a classroom or specific student."""
         user = User.query.get(session['user_id'])
 
         # Verify teacher has access to this classroom
@@ -932,65 +932,117 @@ def register_routes(app):
         if not is_authorized:
             return jsonify({'error': 'Unauthorized'}), 403
 
-        # Get all students in classroom
-        students = Student.query.filter_by(classroom_id=classroom_id).all()
-        student_ids = [s.id for s in students]
+        # Check if filtering by specific student
+        student_id = request.args.get('student_id', type=int)
 
-        # Get all attendance records
-        records = Attendance.query.filter(
-            Attendance.student_id.in_(student_ids)
-        ).order_by(Attendance.student_id, Attendance.date).all()
+        if student_id:
+            # Single student report
+            student = Student.query.filter_by(
+                id=student_id,
+                classroom_id=classroom_id
+            ).first()
+            if not student:
+                return jsonify({'error': 'Student not found'}), 404
 
-        # Create CSV in memory
-        output = io.StringIO()
-        writer = csv.writer(output)
+            records = Attendance.query.filter_by(student_id=student_id).order_by(Attendance.date).all()
 
-        # Write header
-        writer.writerow([
-            'Roll No',
-            'Student Name',
-            'Date',
-            'Period/Subject',
-            'Status',
-            'Parent Email'
-        ])
+            # Create CSV in memory
+            output = io.StringIO()
+            writer = csv.writer(output)
 
-        # Write student records
-        for student in students:
-            student_records = [r for r in records if r.student_id == student.id]
-            if student_records:
-                for record in student_records:
+            # Write header
+            writer.writerow([
+                'Student Name',
+                'Roll No',
+                'Class',
+                'Date',
+                'Period/Subject',
+                'Status'
+            ])
+
+            # Write records
+            for record in records:
+                writer.writerow([
+                    student.name,
+                    student.roll_no,
+                    classroom.name,
+                    record.date,
+                    record.period_name or 'General',
+                    record.status
+                ])
+
+            # Convert to bytes and return as file download
+            output.seek(0)
+            mem = io.BytesIO()
+            mem.write(output.getvalue().encode('utf-8'))
+            mem.seek(0)
+
+            return send_file(
+                mem,
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=f'attendance_{student.name}_{datetime.now().strftime("%Y%m%d")}.csv'
+            )
+        else:
+            # All students in classroom report
+            students = Student.query.filter_by(classroom_id=classroom_id).all()
+            student_ids = [s.id for s in students]
+
+            # Get all attendance records
+            records = Attendance.query.filter(
+                Attendance.student_id.in_(student_ids)
+            ).order_by(Attendance.student_id, Attendance.date).all()
+
+            # Create CSV in memory
+            output = io.StringIO()
+            writer = csv.writer(output)
+
+            # Write header
+            writer.writerow([
+                'Roll No',
+                'Student Name',
+                'Date',
+                'Period/Subject',
+                'Status',
+                'Parent Email'
+            ])
+
+            # Write student records
+            for student in students:
+                student_records = [r for r in records if r.student_id == student.id]
+                if student_records:
+                    for record in student_records:
+                        writer.writerow([
+                            student.roll_no,
+                            student.name,
+                            record.date,
+                            record.period_name or 'General',
+                            record.status,
+                            student.parent_email
+                        ])
+                else:
+                    # Include students with no records
                     writer.writerow([
                         student.roll_no,
                         student.name,
-                        record.date,
-                        record.period_name or 'General',
-                        record.status,
+                        '',
+                        '',
+                        'No records',
                         student.parent_email
                     ])
-            else:
-                # Include students with no records
-                writer.writerow([
-                    student.roll_no,
-                    student.name,
-                    '',
-                    '',
-                    'No records',
-                    student.parent_email
-                ])
 
-        # Convert to bytes and return as file download
-        output.seek(0)
-        mem = io.BytesIO()
-        mem.write(output.getvalue().encode('utf-8'))
-        mem.seek(0)
+            # Convert to bytes and return as file download
+            output.seek(0)
+            mem = io.BytesIO()
+            mem.write(output.getvalue().encode('utf-8'))
+            mem.seek(0)
 
-        return send_file(
-            mem,
-            mimetype='text/csv',
-            as_attachment=True,
-            download_name=f'attendance_{classroom.name}_{datetime.now().strftime("%Y%m%d")}.csv'
-        )
+            return send_file(
+                mem,
+                mimetype='text/csv',
+                as_attachment=True,
+                download_name=f'attendance_{classroom.name}_{datetime.now().strftime("%Y%m%d")}.csv'
+            )
 
     @app.route('/mark_attendance', methods=['GET', 'POST'])
     @login_required

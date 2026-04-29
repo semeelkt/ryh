@@ -82,7 +82,9 @@
 
                     <div>
                         <label for="period_name" class="block text-sm font-semibold text-black mb-2">Period/Subject <span class="text-red-500">*</span></label>
-                        <input type="text" id="period_name" placeholder="e.g., Mathematics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <select id="period_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                            <option value="">-- Select Subject --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -120,11 +122,12 @@
     function loadClassroomStudents() {
         const classroomId = document.getElementById('classroom_id').value;
         if (classroomId) {
-            fetch(`{{ url_for('get_classroom_students') }}?classroom_id=${classroomId}`)
+            // Load students
+            fetch(`{{ url_for('get_classroom_students_api', classroom_id=0) }}`.replace('/0', '/' + classroomId))
                 .then(r => r.json())
                 .then(data => {
                     const studentsList = document.getElementById('students_list');
-                    studentsList.innerHTML = data.students.map(student => `
+                    studentsList.innerHTML = data.map(student => `
                         <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition">
                             <input type="checkbox" class="student-checkbox" value="${student.id}" data-name="${student.name}">
                             <span class="text-black font-semibold">${student.name}</span>
@@ -133,6 +136,16 @@
                     `).join('');
                     document.getElementById('students_container').classList.remove('hidden');
                 });
+
+            // Load teacher's subjects
+            fetch(`{{ url_for('get_teacher_subjects', classroom_id=0) }}`.replace('/0', '/' + classroomId))
+                .then(r => r.json())
+                .then(subjects => {
+                    const subjectSelect = document.getElementById('period_name');
+                    subjectSelect.innerHTML = '<option value="">-- Select Subject --</option>' +
+                        subjects.map(subject => `<option value="${subject}">${subject}</option>`).join('');
+                    subjectSelect.disabled = false;
+                });
         }
     }
 
@@ -140,17 +153,20 @@
         const classroom_id = document.getElementById('classroom_id').value;
         const date = document.getElementById('attendance_date').value;
         const period_name = document.getElementById('period_name').value;
-        const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
+        const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => ({
+            student_id: parseInt(cb.value),
+            status: 'Present'
+        }));
 
         if (!classroom_id || !date || !period_name) {
             alert('Please fill all fields');
             return;
         }
 
-        fetch('{{ url_for("mark_attendance_submit") }}', {
+        fetch('{{ url_for("mark_attendance") }}', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({classroom_id, date, student_ids: checked, period_name})
+            body: JSON.stringify({classroom_id: parseInt(classroom_id), date, attendance_list: checked, period_name})
         }).then(r => r.json()).then(data => {
             if (data.success) {
                 alert('Attendance marked successfully!');

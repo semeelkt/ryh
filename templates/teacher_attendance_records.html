@@ -67,8 +67,8 @@
                 <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
                     <i class="fas fa-download"></i>Download Attendance Report
                 </h2>
-                <div class="flex gap-4 items-end">
-                    <div class="flex-1 max-w-sm">
+                <div class="flex gap-4 items-end flex-wrap">
+                    <div class="flex-1 min-w-sm">
                         <label for="download_classroom" class="block text-sm font-medium text-blue-100 mb-2">Select Classroom</label>
                         <select id="download_classroom" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-black">
                             <option value="">-- Select a classroom --</option>
@@ -77,6 +77,14 @@
                             {% endfor %}
                         </select>
                     </div>
+
+                    <div class="flex-1 min-w-sm">
+                        <label for="download_student" class="block text-sm font-medium text-blue-100 mb-2">Select Student (Optional)</label>
+                        <select id="download_student" class="w-full px-4 py-2 bg-white border border-gray-300 rounded-lg text-black" disabled>
+                            <option value="">-- All Students --</option>
+                        </select>
+                    </div>
+
                     <button onclick="downloadAttendance()" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition">
                         <i class="fas fa-file-csv mr-2"></i>Download as CSV
                     </button>
@@ -87,11 +95,11 @@
             <div class="grid grid-cols-3 gap-6">
                 <div class="bg-blue-600 rounded-lg p-6 text-white">
                     <p class="text-blue-100 text-sm font-medium">Total Students</p>
-                    <p class="text-4xl font-bold mt-2">{{ total_students }}</p>
+                    <p class="text-4xl font-bold mt-2" id="stat_total_students">{{ students|length }}</p>
                 </div>
                 <div class="bg-green-600 rounded-lg p-6 text-white">
                     <p class="text-green-100 text-sm font-medium">Total Records</p>
-                    <p class="text-4xl font-bold mt-2">{{ total_records }}</p>
+                    <p class="text-4xl font-bold mt-2" id="stat_total_records">0</p>
                 </div>
                 <div class="bg-purple-600 rounded-lg p-6 text-white">
                     <p class="text-purple-100 text-sm font-medium">Classes</p>
@@ -103,20 +111,25 @@
             <div class="bg-white rounded-lg p-8 border border-gray-200 shadow-sm">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">Student-wise Records</h2>
 
-                {% if attendance_data %}
-                <div class="space-y-6">
-                    {% for student_id, data in attendance_data.items() %}
-                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
+                {% if attendance_by_student %}
+                <div class="space-y-6" id="records-container">
+                    {% for student in students %}
+                    <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition student-record" data-classroom-id="{{ student.classroom_id }}" data-student-id="{{ student.id }}">
                         <div class="flex items-start justify-between mb-4">
                             <div>
-                                <p class="font-bold text-black">{{ data.student.name }}</p>
-                                <p class="text-sm text-gray-600">Roll: {{ data.student.roll_no }} • Class: {{ data.student.classroom.name }}</p>
+                                <p class="font-bold text-black">{{ student.name }}</p>
+                                <p class="text-sm text-gray-600">Roll: {{ student.roll_no }} • Class: {{ student.classroom.name }}</p>
                             </div>
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold">{{ data.records|length }} Records</span>
+                            {% if attendance_by_student.get(student.id) %}
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-bold attendance-count">{{ attendance_by_student[student.id]|length }} Records</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-bold">0 Records</span>
+                            {% endif %}
                         </div>
 
+                        {% if attendance_by_student.get(student.id) %}
                         <div class="space-y-2 mb-4 max-h-48 overflow-y-auto">
-                            {% for record in data.records[:10] %}
+                            {% for record in attendance_by_student[student.id][:10] %}
                             <div class="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
                                 <span class="text-black">{{ record.date.strftime('%Y-%m-%d') }} ({{ record.period_name or 'General' }})</span>
                                 {% if record.status == 'Present' %}
@@ -127,8 +140,7 @@
                             </div>
                             {% endfor %}
                         </div>
-
-                        <p class="text-xs text-black">Present: <span class="font-bold text-green-600">{{ data.percentage|int }}%</span></p>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -144,13 +156,101 @@
 </div>
 
 <script>
+    // Store students data for filtering
+    const studentsData = {
+        {% for student in students %}
+        {{ student.id }}: {
+            name: '{{ student.name }}',
+            roll_no: '{{ student.roll_no }}',
+            classroom_id: {{ student.classroom_id }}
+        }{{ "," if not loop.last else "" }}
+        {% endfor %}
+    };
+
+    function updateStudentDropdown() {
+        const selectedClassroomId = document.getElementById('download_classroom').value;
+        const studentSelect = document.getElementById('download_student');
+
+        // Clear and reset student dropdown
+        studentSelect.innerHTML = '<option value="">-- All Students --</option>';
+        studentSelect.disabled = !selectedClassroomId;
+
+        if (!selectedClassroomId) return;
+
+        // Get students for selected classroom
+        const classroomStudents = Object.entries(studentsData)
+            .filter(([_, student]) => student.classroom_id == selectedClassroomId)
+            .sort((a, b) => a[1].name.localeCompare(b[1].name));
+
+        classroomStudents.forEach(([studentId, student]) => {
+            const option = document.createElement('option');
+            option.value = studentId;
+            option.textContent = `${student.name} (Roll: ${student.roll_no})`;
+            studentSelect.appendChild(option);
+        });
+    }
+
     function downloadAttendance() {
         const classroomId = document.getElementById('download_classroom').value;
+        const studentId = document.getElementById('download_student').value;
+
         if (!classroomId) {
             alert('Please select a classroom');
             return;
         }
-        window.location = `{{ url_for('download_attendance_report') }}?classroom_id=${classroomId}`;
+
+        const baseUrl = `{{ url_for('download_attendance_report', classroom_id=0) }}`.replace('/0', '/' + classroomId);
+
+        if (studentId) {
+            // Download individual student attendance
+            window.location = baseUrl + `?student_id=${studentId}`;
+        } else {
+            // Download entire classroom attendance
+            window.location = baseUrl;
+        }
     }
+
+    function filterByClassroomAndStudent() {
+        const selectedClassroomId = document.getElementById('download_classroom').value;
+        const selectedStudentId = document.getElementById('download_student').value;
+        const records = document.querySelectorAll('.student-record');
+        let visibleCount = 0;
+        let totalRecords = 0;
+
+        records.forEach(record => {
+            const recordClassroomId = record.getAttribute('data-classroom-id');
+            const recordStudentId = record.getAttribute('data-student-id');
+
+            const classroomMatch = !selectedClassroomId || recordClassroomId === selectedClassroomId;
+            const studentMatch = !selectedStudentId || recordStudentId === selectedStudentId;
+            const shouldShow = classroomMatch && studentMatch;
+
+            record.style.display = shouldShow ? 'block' : 'none';
+
+            if (shouldShow) {
+                visibleCount++;
+                const attendanceCount = record.querySelector('.attendance-count');
+                if (attendanceCount) {
+                    const count = parseInt(attendanceCount.textContent);
+                    totalRecords += count;
+                }
+            }
+        });
+
+        // Update stats
+        document.getElementById('stat_total_students').textContent = visibleCount;
+        document.getElementById('stat_total_records').textContent = totalRecords;
+    }
+
+    // Add event listeners
+    document.getElementById('download_classroom').addEventListener('change', function() {
+        updateStudentDropdown();
+        filterByClassroomAndStudent();
+    });
+
+    document.getElementById('download_student').addEventListener('change', filterByClassroomAndStudent);
+
+    // Initialize on load
+    window.addEventListener('load', filterByClassroomAndStudent);
 </script>
 {% endblock %}
