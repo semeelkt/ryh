@@ -1178,6 +1178,22 @@ def register_routes(app):
         if not leave_request:
             return jsonify({'error': 'Leave request not found'}), 404
 
+        # Verify teacher is authorized for the student's classroom
+        if not leave_request.student:
+            return jsonify({'error': 'Student not found'}), 404
+
+        classroom = leave_request.student.classroom
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom.id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
+
         leave_request.status = 'Approved'
         leave_request.teacher_id = user.id
         leave_request.updated_at = datetime.utcnow()
@@ -1195,6 +1211,22 @@ def register_routes(app):
 
         if not leave_request:
             return jsonify({'error': 'Leave request not found'}), 404
+
+        # Verify teacher is authorized for the student's classroom
+        if not leave_request.student:
+            return jsonify({'error': 'Student not found'}), 404
+
+        classroom = leave_request.student.classroom
+        is_authorized = classroom.class_teacher_id == user.id
+        if not is_authorized:
+            teacher_class = TeacherClass.query.filter_by(
+                teacher_id=user.id,
+                classroom_id=classroom.id
+            ).first()
+            is_authorized = teacher_class is not None
+
+        if not is_authorized:
+            return jsonify({'error': 'Unauthorized'}), 403
 
         leave_request.status = 'Rejected'
         leave_request.teacher_id = user.id
@@ -1368,7 +1400,7 @@ def register_routes(app):
             # Create sample classroom
             classroom = Classroom(
                 name='1-A',
-                teacher_id=teacher.id
+                class_teacher_id=teacher.id
             )
             db.session.add(classroom)
 
