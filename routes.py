@@ -1,5 +1,5 @@
 from flask import render_template, request, jsonify, session, redirect, url_for, send_file
-from models import db, User, Classroom, Student, Attendance, Timetable, TeacherClass
+from models import db, User, Classroom, Student, Attendance, Timetable, TeacherClass, LeaveRequest
 from utils import (
     calculate_attendance_percentage,
     process_excel_upload,
@@ -368,7 +368,16 @@ def register_routes(app):
         classrooms_as_class_teacher = Classroom.query.filter_by(class_teacher_id=user.id).all()
         classrooms = list(set(classrooms + classrooms_as_class_teacher))
 
-        return render_template('teacher_dashboard.html', classrooms=classrooms, teacher=user)
+        # Get pending leave requests count
+        classroom_ids = [c.id for c in classrooms]
+        students_in_class = Student.query.filter(Student.classroom_id.in_(classroom_ids)).all()
+        student_ids = [s.id for s in students_in_class]
+        pending_leave_requests = LeaveRequest.query.filter(
+            LeaveRequest.student_id.in_(student_ids),
+            LeaveRequest.status == 'Pending'
+        ).count()
+
+        return render_template('teacher_dashboard.html', classrooms=classrooms, teacher=user, pending_leave_requests=pending_leave_requests)
 
     @app.route('/upload_students', methods=['GET', 'POST'])
     @login_required
@@ -1089,6 +1098,96 @@ def register_routes(app):
 
         attendance_data = get_student_attendance_data(student.id)
         return jsonify(attendance_data)
+
+    @app.route('/student/leave-request', methods=['GET', 'POST'])
+    @login_required
+    @role_required('student')
+    def student_leave_request():
+        """Student submit leave request."""
+        user = User.query.get(session['user_id'])
+        student = Student.query.filter_by(user_id=user.id).first()
+
+        if not student:
+            return redirect(url_for('student_dashboard'))
+
+        if request.method == 'POST':
+            from_date = request.form.get('from_date')
+            to_date = request.form.get('to_date')
+            reason = request.form.get('reason', '').strip()
+
+            if not from_date or not to_date or not reason:
+                return render_template('student_leave_request.html', student=student, error='All fields required')
+
+            leave_request = LeaveRequest(
+                student_id=student.id,
+                from_date=datetime.strptime(from_date, '%Y-%m-%d').date(),
+                to_date=datetime.strptime(to_date, '%Y-%m-%d').date(),
+                reason=reason,
+                status='Pending'
+            )
+            db.session.add(leave_request)
+            db.session.commit()
+
+            return render_template('student_leave_request.html', student=student, success='Leave request submitted successfully!')
+
+        leave_requests = LeaveRequest.query.filter_by(student_id=student.id).order_by(LeaveRequest.created_at.desc()).all()
+        return render_template('student_leave_request.html', student=student, leave_requests=leave_requests)
+
+    @app.route('/teacher/leave-requests', methods=['GET'])
+    @login_required
+    @role_required('teacher')
+    def teacher_leave_requests():
+        """Teacher view leave requests from their class students."""
+        user = User.query.get(session['user_id'])
+        classrooms = get_teacher_classrooms(user.id)
+
+        classroom_ids = [c.id for c in classrooms]
+        students_in_class = Student.query.filter(Student.classroom_id.in_(classroom_ids)).all()
+        student_ids = [s.id for s in students_in_class]
+
+        leave_requests = LeaveRequest.query.filter(LeaveRequest.student_id.in_(student_ids)).order_by(
+            LeaveRequest.created_at.desc()
+        ).all()
+
+        pending_requests = [lr for lr in leave_requests if lr.status == 'Pending']
+
+        return render_template('teacher_leave_requests.html', leave_requests=leave_requests, pending_count=len(pending_requests))
+
+    @app.route('/teacher/leave-request/<int:request_id>/approve', methods=['POST'])
+    @login_required
+    @role_required('teacher')
+    def approve_leave_request(request_id):
+        """Teacher approve leave request."""
+        user = User.query.get(session['user_id'])
+        leave_request = LeaveRequest.query.get(request_id)
+
+        if not leave_request:
+            return jsonify({'error': 'Leave request not found'}), 404
+
+        leave_request.status = 'Approved'
+        leave_request.teacher_id = user.id
+        leave_request.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Leave request approved'})
+
+    @app.route('/teacher/leave-request/<int:request_id>/reject', methods=['POST'])
+    @login_required
+    @role_required('teacher')
+    def reject_leave_request(request_id):
+        """Teacher reject leave request."""
+        user = User.query.get(session['user_id'])
+        leave_request = LeaveRequest.query.get(request_id)
+
+        if not leave_request:
+            return jsonify({'error': 'Leave request not found'}), 404
+
+        leave_request.status = 'Rejected'
+        leave_request.teacher_id = user.id
+        leave_request.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        return jsonify({'success': True, 'message': 'Leave request rejected'})
 
     # ==================== SCHOOL ADMIN Attendance Routes ====================
     @app.route('/school/attendance-overview', methods=['GET'])

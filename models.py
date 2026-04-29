@@ -115,3 +115,23 @@ class Timetable(db.Model):
 
     def __repr__(self):
         return f'<Timetable {self.subject_name} on {self.day_of_week}>'
+
+class LeaveRequest(db.Model):
+    """Leave request model for student leave applications."""
+    __tablename__ = 'leave_request'
+
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False, index=True)
+    from_date = db.Column(db.Date, nullable=False)
+    to_date = db.Column(db.Date, nullable=False)
+    reason = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), nullable=False, default='Pending')  # Pending, Approved, Rejected
+    teacher_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Teacher who approved/rejected
+    approved_by = db.relationship('User', foreign_keys=[teacher_id], backref='leave_approvals')
+    student = db.relationship('Student', backref='leave_requests')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<LeaveRequest {self.student.name} - {self.status}>'
+

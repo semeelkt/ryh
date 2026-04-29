@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Requests - Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-56 bg-gradient-to-b from-blue-600 to-blue-500 text-white flex flex-col">
+        <!-- Logo -->
+        <div class="p-6 border-b border-blue-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-book-open text-white text-lg"></i>
+                </div>
+                <span class="text-lg font-bold">Teacher Portal</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="{{ url_for('teacher_dashboard') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('teacher_leave_requests') }}" class="flex items-center gap-3 px-4 py-3 bg-white/30 rounded-lg text-white font-semibold">
+                <i class="fas fa-file-alt"></i>
+                <span>Leave Requests</span>
+                {% if pending_count > 0 %}
+                <span class="ml-auto bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold">{{ pending_count }}</span>
+                {% endif %}
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-6 border-t border-blue-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-white"></i>
+                </div>
+                <div style="min-width: 0;">
+                    <p class="font-semibold text-sm truncate">{{ session.username }}</p>
+                    <p class="text-xs text-blue-100">Teacher</p>
+                </div>
+            </div>
+            <a href="{{ url_for('logout') }}" class="mt-4 w-full bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto flex flex-col">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Leave Requests</h1>
+                    <p class="text-gray-600 mt-1">Review and manage student leave applications</p>
+                </div>
+                {% if pending_count > 0 %}
+                <div class="bg-red-100 border border-red-200 rounded-lg px-6 py-3">
+                    <p class="text-red-700 font-bold">
+                        <i class="fas fa-bell mr-2"></i>{{ pending_count }} Pending Request{{ 's' if pending_count != 1 else '' }}
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+            {% if leave_requests %}
+            <div class="space-y-4">
+                {% for leave in leave_requests %}
+                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-black">{{ leave.student.name }}</p>
+                                    <p class="text-xs text-black">Roll: {{ leave.student.roll_no }} | Class: {{ leave.student.classroom.name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-lg p-4 mt-4 mb-4">
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div>
+                                        <p class="text-xs text-black font-medium">FROM DATE</p>
+                                        <p class="font-bold text-black">{{ leave.from_date.strftime('%d %b %Y') }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-black font-medium">TO DATE</p>
+                                        <p class="font-bold text-black">{{ leave.to_date.strftime('%d %b %Y') }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-black font-medium">DURATION</p>
+                                        <p class="font-bold text-black">{{ (leave.to_date - leave.from_date).days + 1 }} day(s)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-black mb-3"><strong>Reason:</strong> {{ leave.reason }}</p>
+                            <p class="text-xs text-black">Submitted on: {{ leave.created_at.strftime('%d %B %Y %H:%M') }}</p>
+                        </div>
+
+                        <span class="px-4 py-2 rounded-full text-sm font-bold flex-shrink-0
+                            {% if leave.status == 'Approved' %}
+                                bg-green-100 text-green-700
+                            {% elif leave.status == 'Rejected' %}
+                                bg-red-100 text-red-700
+                            {% else %}
+                                bg-yellow-100 text-yellow-700
+                            {% endif %}
+                        ">
+                            {{ leave.status }}
+                        </span>
+                    </div>
+
+                    {% if leave.status == 'Pending' %}
+                    <div class="flex gap-3 pt-4 border-t border-gray-200">
+                        <button class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold approve-btn" data-id="{{ leave.id }}">
+                            <i class="fas fa-check-circle mr-2"></i>Approve
+                        </button>
+                        <button class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition font-semibold reject-btn" data-id="{{ leave.id }}">
+                            <i class="fas fa-times-circle mr-2"></i>Reject
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="bg-white rounded-lg p-12 border border-gray-200 text-center">
+                <i class="fas fa-inbox text-5xl text-gray-300 mb-4"></i>
+                <p class="text-gray-600 font-semibold text-lg">No leave requests found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.approve-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            const response = await fetch(`/teacher/leave-request/${id}/approve`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    });
+
+    document.querySelectorAll('.reject-btn').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const id = this.getAttribute('data-id');
+            const response = await fetch(`/teacher/leave-request/${id}/reject`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'}
+            });
+            if (response.ok) {
+                location.reload();
+            }
+        });
+    });
+</script>
+{% endblock %}
