@@ -3,50 +3,91 @@
 {% block title %}Manage Timetable - Teacher{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-950">
-    <!-- Header -->
-    <nav class="bg-gray-900 border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="{{ url_for('teacher_dashboard') }}" class="text-2xl font-bold text-blue-400">← Dashboard</a>
-            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
-                Logout
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-56 bg-gradient-to-b from-blue-600 to-blue-500 text-white flex flex-col">
+        <!-- Logo -->
+        <div class="p-6 border-b border-blue-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-book-open text-white text-lg"></i>
+                </div>
+                <span class="text-lg font-bold">Teacher Portal</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="{{ url_for('teacher_dashboard') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('manage_timetable') }}" class="flex items-center gap-3 px-4 py-3 bg-white/30 rounded-lg text-white font-semibold">
+                <i class="fas fa-calendar"></i>
+                <span>Timetable</span>
+            </a>
+            <a href="{{ url_for('mark_attendance') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-check-circle"></i>
+                <span>Mark Attendance</span>
+            </a>
+            <a href="{{ url_for('view_attendance_records') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Records</span>
+            </a>
+            <a href="{{ url_for('upload_students') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-cloud-arrow-up"></i>
+                <span>Upload</span>
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-6 border-t border-blue-400">
+            <a href="{{ url_for('logout') }}" class="w-full bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition text-center block">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </a>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-4xl mx-auto p-6">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">Manage Timetable</h1>
-            <p class="text-gray-400">Create class schedule sessions</p>
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto flex flex-col">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Manage Timetable</h1>
+                    <p class="text-gray-600 mt-1">Create and manage class schedule sessions</p>
+                </div>
+            </div>
         </div>
 
-        {% if error %}
-        <div class="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6 text-red-200">
-            {{ error }}
-        </div>
-        {% endif %}
+        <!-- Content -->
+        <div class="flex-1 p-8 space-y-8 overflow-y-auto">
+            {% if error %}
+            <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p class="text-red-700 font-semibold"><i class="fas fa-exclamation-circle mr-2"></i>{{ error }}</p>
+            </div>
+            {% endif %}
 
-        {% if success %}
-        <div class="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6 text-green-200">
-            ✓ Timetable session "{{ subject_name }}" created successfully!
-        </div>
-        {% endif %}
+            {% if success %}
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p class="text-green-700 font-semibold"><i class="fas fa-check-circle mr-2"></i>✓ Timetable session "{{ subject_name }}" created successfully!</p>
+            </div>
+            {% endif %}
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Add Timetable Form -->
-            <div class="lg:col-span-1">
-                <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                    <h2 class="text-lg font-bold mb-4">Add Session</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Add Timetable Form -->
+                <div class="bg-white rounded-lg p-8 border border-gray-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-plus text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-900">Add Session</h2>
+                    </div>
 
                     <form method="POST" action="{{ url_for('manage_timetable') }}" class="space-y-4">
                         <div>
-                            <label for="classroom_id" class="block text-sm font-medium text-gray-300 mb-1">Class</label>
-                            <select
-                                id="classroom_id"
-                                name="classroom_id"
-                                required
-                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
-                            >
+                            <label for="classroom_id" class="block text-sm font-semibold text-black mb-2">Class <span class="text-red-500">*</span></label>
+                            <select id="classroom_id" name="classroom_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Select Class</option>
                                 {% for classroom in classrooms %}
                                 <option value="{{ classroom.id }}">{{ classroom.name }}</option>
@@ -55,13 +96,8 @@
                         </div>
 
                         <div>
-                            <label for="day_of_week" class="block text-sm font-medium text-gray-300 mb-1">Day</label>
-                            <select
-                                id="day_of_week"
-                                name="day_of_week"
-                                required
-                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
-                            >
+                            <label for="day_of_week" class="block text-sm font-semibold text-black mb-2">Day <span class="text-red-500">*</span></label>
+                            <select id="day_of_week" name="day_of_week" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
                                 <option value="">Select Day</option>
                                 <option value="Monday">Monday</option>
                                 <option value="Tuesday">Tuesday</option>
@@ -73,113 +109,61 @@
                         </div>
 
                         <div>
-                            <label for="start_time" class="block text-sm font-medium text-gray-300 mb-1">Start Time</label>
-                            <input
-                                type="time"
-                                id="start_time"
-                                name="start_time"
-                                required
-                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
-                            >
+                            <label for="start_time" class="block text-sm font-semibold text-black mb-2">Start Time <span class="text-red-500">*</span></label>
+                            <input type="time" id="start_time" name="start_time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
-                            <label for="end_time" class="block text-sm font-medium text-gray-300 mb-1">End Time</label>
-                            <input
-                                type="time"
-                                id="end_time"
-                                name="end_time"
-                                required
-                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
-                            >
+                            <label for="end_time" class="block text-sm font-semibold text-black mb-2">End Time <span class="text-red-500">*</span></label>
+                            <input type="time" id="end_time" name="end_time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
                         <div>
-                            <label for="subject_name" class="block text-sm font-medium text-gray-300 mb-1">Subject</label>
-                            <input
-                                type="text"
-                                id="subject_name"
-                                name="subject_name"
-                                required
-                                placeholder="e.g., Mathematics"
-                                class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white"
-                            >
+                            <label for="subject_name" class="block text-sm font-semibold text-black mb-2">Subject <span class="text-red-500">*</span></label>
+                            <input type="text" id="subject_name" name="subject_name" placeholder="e.g., Mathematics" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
 
-                        <button
-                            type="submit"
-                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition text-sm"
-                        >
-                            Add Session
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition font-semibold mt-6">
+                            <i class="fas fa-plus mr-2"></i>Add Session
                         </button>
                     </form>
                 </div>
-            </div>
 
-            <!-- Current Timetable -->
-            <div class="lg:col-span-2">
-                <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-                    <h2 class="text-lg font-bold mb-4">Your Timetable</h2>
+                <!-- Your Timetable -->
+                <div class="lg:col-span-2 bg-white rounded-lg p-8 border border-gray-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-clock text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-gray-900">Your Timetable</h2>
+                    </div>
 
-                    {% set all_timetables = [] %}
-                    {% for classroom in classrooms %}
-                        {% set timetables = classroom.timetables %}
-                        {% if timetables %}
-                            {% for timetable in timetables %}
-                                {% set _ = all_timetables.append((classroom, timetable)) %}
-                            {% endfor %}
-                        {% endif %}
-                    {% endfor %}
-
-                    {% if all_timetables %}
-                    <div class="space-y-3">
-                        {% for classroom, timetable in all_timetables | sort(attribute='0.name') %}
-                        <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
-                            <div class="flex justify-between items-start">
+                    {% if timetables %}
+                    <div class="space-y-3 max-h-96 overflow-y-auto">
+                        {% for timetable in timetables %}
+                        <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                            <div class="flex items-start justify-between mb-2">
                                 <div>
-                                    <p class="text-blue-400 font-semibold">{{ timetable.subject_name }}</p>
-                                    <p class="text-sm text-gray-400">{{ classroom.name }} • {{ timetable.day_of_week }}</p>
-                                    <p class="text-sm text-gray-500">{{ timetable.start_time|string }} - {{ timetable.end_time|string }}</p>
+                                    <p class="font-bold text-gray-900">{{ timetable.subject_name }}</p>
+                                    <p class="text-sm text-gray-600">{{ timetable.classroom.name }} • {{ timetable.day_of_week }}</p>
+                                    <p class="text-sm text-gray-600">{{ timetable.start_time.strftime('%H:%M') }} - {{ timetable.end_time.strftime('%H:%M') }}</p>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs bg-blue-600 px-2 py-1 rounded">{{ classroom.name }}</span>
-                                    <button class="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white delete-timetable" data-id="{{ timetable.id }}">Delete</button>
-                                </div>
+                                <a href="{{ url_for('delete_timetable', timetable_id=timetable.id) }}" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition text-sm font-semibold">
+                                    Delete
+                                </a>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <p class="text-gray-400 text-center py-8">No timetable sessions added yet.</p>
+                    <div class="text-center py-8">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-600 font-semibold">No timetable sessions created yet</p>
+                    </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    // Delete timetable
-    document.querySelectorAll('.delete-timetable').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            if (confirm('Are you sure you want to delete this timetable session?')) {
-                const timetableId = btn.getAttribute('data-id');
-                try {
-                    const response = await fetch(`/teacher/delete-timetable/${timetableId}`, {
-                        method: 'POST'
-                    });
-                    if (response.ok) {
-                        location.reload();
-                    } else {
-                        alert('Failed to delete timetable');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error deleting timetable');
-                }
-            }
-        });
-    });
-</script>
 {% endblock %}

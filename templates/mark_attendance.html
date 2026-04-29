@@ -1,270 +1,167 @@
 {% extends "base.html" %}
 
-{% block title %}Mark Attendance - Attendance System{% endblock %}
+{% block title %}Mark Attendance - Teacher{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-950">
-    <!-- Header -->
-    <nav class="bg-gray-900 border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="{{ url_for('teacher_dashboard') }}" class="text-2xl font-bold text-blue-400">← Dashboard</a>
-            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
-                Logout
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-56 bg-gradient-to-b from-blue-600 to-blue-500 text-white flex flex-col">
+        <!-- Logo -->
+        <div class="p-6 border-b border-blue-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-book-open text-white text-lg"></i>
+                </div>
+                <span class="text-lg font-bold">Teacher Portal</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="{{ url_for('teacher_dashboard') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('manage_timetable') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-calendar"></i>
+                <span>Timetable</span>
+            </a>
+            <a href="{{ url_for('mark_attendance') }}" class="flex items-center gap-3 px-4 py-3 bg-white/30 rounded-lg text-white font-semibold">
+                <i class="fas fa-check-circle"></i>
+                <span>Mark Attendance</span>
+            </a>
+            <a href="{{ url_for('view_attendance_records') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Records</span>
+            </a>
+            <a href="{{ url_for('upload_students') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-cloud-arrow-up"></i>
+                <span>Upload</span>
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-6 border-t border-blue-400">
+            <a href="{{ url_for('logout') }}" class="w-full bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition text-center block">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </a>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-5xl mx-auto p-6">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">Mark Attendance</h1>
-            <p class="text-gray-400">Record attendance for your students</p>
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto flex flex-col">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-8 py-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Mark Attendance</h1>
+                    <p class="text-gray-600 mt-1">Record attendance for your students</p>
+                </div>
+            </div>
         </div>
 
-        <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-            <!-- Classroom & Date Selection -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div>
-                    <label for="classroom_id" class="block text-sm font-medium text-gray-300 mb-2">Classroom</label>
-                    <select
-                        id="classroom_id"
-                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
-                        onchange="loadClassroomStudents()"
-                    >
-                        <option value="">-- Select Classroom --</option>
-                        {% for classroom in classrooms %}
-                        <option value="{{ classroom.id }}">Class {{ classroom.name }}</option>
-                        {% endfor %}
-                    </select>
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+            <div class="bg-white rounded-lg p-8 border border-gray-200 shadow-sm max-w-5xl">
+                <!-- Classroom & Date Selection -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div>
+                        <label for="classroom_id" class="block text-sm font-semibold text-black mb-2">Classroom <span class="text-red-500">*</span></label>
+                        <select id="classroom_id" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500" onchange="loadClassroomStudents()">
+                            <option value="">-- Select Classroom --</option>
+                            {% for classroom in classrooms %}
+                            <option value="{{ classroom.id }}">Class {{ classroom.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="attendance_date" class="block text-sm font-semibold text-black mb-2">Date <span class="text-red-500">*</span></label>
+                        <input type="date" id="attendance_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <div>
+                        <label for="period_name" class="block text-sm font-semibold text-black mb-2">Period/Subject <span class="text-red-500">*</span></label>
+                        <input type="text" id="period_name" placeholder="e.g., Mathematics" class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
                 </div>
 
-                <div>
-                    <label for="attendance_date" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
-                    <input
-                        type="date"
-                        id="attendance_date"
-                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
-                    >
+                <!-- Students List -->
+                <div id="students_container" class="hidden">
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+                        <h3 class="font-bold text-gray-900 mb-4">Mark student attendance:</h3>
+                        <div id="students_list" class="space-y-2 max-h-96 overflow-y-auto">
+                            <!-- Students will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button type="button" id="submit_btn" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
+                            <i class="fas fa-save mr-2"></i>Submit Attendance
+                        </button>
+                        <button type="button" onclick="document.getElementById('students_container').classList.add('hidden')" class="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold">
+                            Cancel
+                        </button>
+                    </div>
                 </div>
 
-                <div>
-                    <label for="period_name" class="block text-sm font-medium text-gray-300 mb-2">Period/Subject</label>
-                    <select
-                        id="period_name"
-                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
-                    >
-                        <option value="">-- Select Subject --</option>
-                    </select>
+                {% if not classrooms %}
+                <div class="text-center py-8">
+                    <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                    <p class="text-gray-600 font-semibold">No classrooms assigned to you</p>
                 </div>
-            </div>
-
-            <!-- Students Table -->
-            <div id="students-container" class="hidden">
-                <h2 class="text-xl font-bold mb-4">Students</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full">
-                        <thead>
-                            <tr class="border-b border-gray-700">
-                                <th class="text-left px-4 py-3 text-gray-300">Roll No</th>
-                                <th class="text-left px-4 py-3 text-gray-300">Name</th>
-                                <th class="text-left px-4 py-3 text-gray-300">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="students-list">
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="mt-8 flex gap-4">
-                    <button
-                        onclick="markAll('Present')"
-                        class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-                    >
-                        Mark All Present
-                    </button>
-                    <button
-                        onclick="markAll('Absent')"
-                        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-                    >
-                        Mark All Absent
-                    </button>
-                    <button
-                        onclick="submitAttendance()"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition"
-                    >
-                        Submit Attendance
-                    </button>
-                </div>
-            </div>
-
-            <div id="no-students" class="text-center py-8 text-gray-400">
-                Select a classroom to view students
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Set today's date as default
-    document.getElementById('attendance_date').valueAsDate = new Date();
-
-    let currentStudents = [];
-
     function loadClassroomStudents() {
         const classroomId = document.getElementById('classroom_id').value;
-        const container = document.getElementById('students-container');
-        const noStudents = document.getElementById('no-students');
-
-        if (!classroomId) {
-            container.classList.add('hidden');
-            noStudents.classList.remove('hidden');
-            document.getElementById('period_name').innerHTML = '<option value="">-- Select Subject --</option>';
-            return;
-        }
-
-        // Load students
-        fetch(`/api/classroom/${classroomId}/students`)
-            .then(r => r.json())
-            .then(data => {
-                currentStudents = data;
-                populateStudentTable(data);
-                container.classList.remove('hidden');
-                noStudents.classList.add('hidden');
-            })
-            .catch(err => {
-                console.error('Error loading students:', err);
-                noStudents.textContent = 'Unable to load students. Please try again.';
-            });
-
-        // Load subjects for this classroom
-        fetch(`/api/classroom/${classroomId}/teacher-subjects`)
-            .then(r => r.json())
-            .then(subjects => {
-                const select = document.getElementById('period_name');
-                select.innerHTML = '<option value="">-- Select Subject --</option>';
-                if (subjects.length > 0) {
-                    subjects.forEach(subject => {
-                        const option = document.createElement('option');
-                        option.value = subject;
-                        option.textContent = subject;
-                        select.appendChild(option);
-                    });
-                } else {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = '-- No subjects assigned --';
-                    option.disabled = true;
-                    select.appendChild(option);
-                }
-            })
-            .catch(err => {
-                console.error('Error loading subjects:', err);
-            });
-    }
-
-    function populateStudentTable(students) {
-        const tbody = document.getElementById('students-list');
-        tbody.innerHTML = students.map(student => `
-            <tr class="border-b border-gray-700 hover:bg-gray-800">
-                <td class="px-4 py-3 text-gray-300">${student.roll_no}</td>
-                <td class="px-4 py-3 text-gray-300">${student.name}</td>
-                <td class="px-4 py-3">
-                    <div class="flex gap-2">
-                        <button
-                            onclick="setStatus(${student.id}, 'Present')"
-                            class="px-3 py-1 rounded text-sm font-semibold transition status-btn-${student.id}"
-                            id="btn-present-${student.id}"
-                        >
-                            Present
-                        </button>
-                        <button
-                            onclick="setStatus(${student.id}, 'Absent')"
-                            class="px-3 py-1 rounded text-sm font-semibold transition status-btn-${student.id}"
-                            id="btn-absent-${student.id}"
-                        >
-                            Absent
-                        </button>
-                    </div>
-                </td>
-            </tr>
-        `).join('');
-
-        // Reset all to absent by default
-        currentStudents.forEach(student => {
-            setStatus(student.id, 'Absent');
-        });
-    }
-
-    const studentStatus = {};
-
-    function setStatus(studentId, status) {
-        studentStatus[studentId] = status;
-
-        const presentBtn = document.getElementById(`btn-present-${studentId}`);
-        const absentBtn = document.getElementById(`btn-absent-${studentId}`);
-
-        presentBtn.classList.remove('bg-green-600', 'text-white');
-        absentBtn.classList.remove('bg-red-600', 'text-white');
-        presentBtn.classList.add('bg-gray-700', 'text-gray-400');
-        absentBtn.classList.add('bg-gray-700', 'text-gray-400');
-
-        if (status === 'Present') {
-            presentBtn.classList.remove('bg-gray-700', 'text-gray-400');
-            presentBtn.classList.add('bg-green-600', 'text-white');
-        } else {
-            absentBtn.classList.remove('bg-gray-700', 'text-gray-400');
-            absentBtn.classList.add('bg-red-600', 'text-white');
+        if (classroomId) {
+            fetch(`{{ url_for('get_classroom_students') }}?classroom_id=${classroomId}`)
+                .then(r => r.json())
+                .then(data => {
+                    const studentsList = document.getElementById('students_list');
+                    studentsList.innerHTML = data.students.map(student => `
+                        <label class="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-white transition">
+                            <input type="checkbox" class="student-checkbox" value="${student.id}" data-name="${student.name}">
+                            <span class="text-black font-semibold">${student.name}</span>
+                            <span class="text-gray-600 text-sm">(Roll: ${student.roll_no})</span>
+                        </label>
+                    `).join('');
+                    document.getElementById('students_container').classList.remove('hidden');
+                });
         }
     }
 
-    function markAll(status) {
-        currentStudents.forEach(student => {
-            setStatus(student.id, status);
-        });
-    }
-
-    function submitAttendance() {
-        const classroomId = document.getElementById('classroom_id').value;
+    document.getElementById('submit_btn').addEventListener('click', function() {
+        const classroom_id = document.getElementById('classroom_id').value;
         const date = document.getElementById('attendance_date').value;
-        const periodName = document.getElementById('period_name').value;
+        const period_name = document.getElementById('period_name').value;
+        const checked = Array.from(document.querySelectorAll('.student-checkbox:checked')).map(cb => cb.value);
 
-        if (!classroomId || !date) {
-            alert('Please select classroom and date');
+        if (!classroom_id || !date || !period_name) {
+            alert('Please fill all fields');
             return;
         }
 
-        const attendanceList = Object.entries(studentStatus).map(([studentId, status]) => ({
-            student_id: parseInt(studentId),
-            status: status
-        }));
-
-        fetch('{{ url_for("mark_attendance") }}', {
+        fetch('{{ url_for("mark_attendance_submit") }}', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                classroom_id: parseInt(classroomId),
-                date: date,
-                period_name: periodName || 'General',
-                attendance_list: attendanceList
-            })
-        })
-        .then(r => r.json())
-        .then(data => {
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({classroom_id, date, student_ids: checked, period_name})
+        }).then(r => r.json()).then(data => {
             if (data.success) {
-                alert('Attendance submitted successfully!');
-                // Reset form
-                document.getElementById('classroom_id').value = '';
-                document.getElementById('students-container').classList.add('hidden');
-                document.getElementById('no-students').classList.remove('hidden');
+                alert('Attendance marked successfully!');
+                location.reload();
             } else {
                 alert('Error: ' + (data.error || 'Unknown error'));
             }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            alert('Error submitting attendance');
-        });
-    }
+        }).catch(err => console.error('Error:', err));
+    });
+
+    // Set today's date
+    document.getElementById('attendance_date').valueAsDate = new Date();
 </script>
 {% endblock %}

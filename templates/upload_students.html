@@ -1,186 +1,148 @@
 {% extends "base.html" %}
 
-{% block title %}Upload Students - Attendance System{% endblock %}
+{% block title %}Upload Materials - Teacher{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-950">
-    <!-- Header -->
-    <nav class="bg-gray-900 border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-            <a href="{{ url_for('teacher_dashboard') }}" class="text-2xl font-bold text-blue-400">← Dashboard</a>
-            <a href="{{ url_for('logout') }}" class="bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg text-sm">
-                Logout
+<div class="flex h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-56 bg-gradient-to-b from-blue-600 to-blue-500 text-white flex flex-col">
+        <!-- Logo -->
+        <div class="p-6 border-b border-blue-400">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-book-open text-white text-lg"></i>
+                </div>
+                <span class="text-lg font-bold">Teacher Portal</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+            <a href="{{ url_for('teacher_dashboard') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('manage_timetable') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-calendar"></i>
+                <span>Timetable</span>
+            </a>
+            <a href="{{ url_for('mark_attendance') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-check-circle"></i>
+                <span>Mark Attendance</span>
+            </a>
+            <a href="{{ url_for('view_attendance_records') }}" class="flex items-center gap-3 px-4 py-3 hover:bg-white/20 rounded-lg text-white transition">
+                <i class="fas fa-clipboard-list"></i>
+                <span>Records</span>
+            </a>
+            <a href="{{ url_for('upload_students') }}" class="flex items-center gap-3 px-4 py-3 bg-white/30 rounded-lg text-white font-semibold">
+                <i class="fas fa-cloud-arrow-up"></i>
+                <span>Upload</span>
+            </a>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-6 border-t border-blue-400">
+            <a href="{{ url_for('logout') }}" class="w-full bg-red-600/80 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition text-center block">
+                <i class="fas fa-sign-out-alt mr-2"></i>Logout
             </a>
         </div>
-    </nav>
+    </div>
 
-    <div class="max-w-3xl mx-auto p-6">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold mb-2">Upload Students</h1>
-            <p class="text-gray-400">Upload a spreadsheet to add students to your classroom</p>
-        </div>
-
-        <!-- Error/Success Messages -->
-        {% if result %}
-            {% if result.success %}
-            <div class="bg-green-900/30 border border-green-700 rounded-lg p-4 mb-6">
-                <h3 class="font-semibold text-green-300 mb-2">✓ Upload Completed</h3>
-                <p class="text-green-200">
-                    Successfully created <strong>{{ result.created }}</strong> out of <strong>{{ result.total }}</strong> students
-                </p>
-                {% if result.errors %}
-                <div class="mt-4 bg-gray-900 rounded-lg p-3">
-                    <p class="text-sm text-gray-300 font-semibold mb-2">Errors:</p>
-                    <ul class="text-sm text-gray-400 space-y-1">
-                        {% for error in result.errors %}
-                        <li>• {{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% endif %}
-            </div>
-            {% else %}
-            <div class="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6">
-                <h3 class="font-semibold text-red-300 mb-2">✗ Upload Failed</h3>
-                {% if result.errors %}
-                <ul class="text-red-200 text-sm space-y-1">
-                    {% for error in result.errors %}
-                    <li>• {{ error }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-            {% endif %}
-        {% endif %}
-
-        {% if error %}
-        <div class="bg-red-900/30 border border-red-700 rounded-lg p-4 mb-6 text-red-200">
-            {{ error }}
-        </div>
-        {% endif %}
-
-        <!-- Upload Form -->
-        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 mb-8">
-            <h2 class="text-xl font-bold mb-6">Upload Excel File</h2>
-
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
-                <!-- Classroom Selection -->
+    <!-- Main Content -->
+    <div class="flex-1 overflow-auto flex flex-col">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-200 px-8 py-6">
+            <div class="flex items-center justify-between">
                 <div>
-                    <label for="classroom_id" class="block text-sm font-medium text-gray-300 mb-2">Select Classroom</label>
-                    <select
-                        id="classroom_id"
-                        name="classroom_id"
-                        required
-                        class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-white"
-                    >
-                        <option value="">-- Choose a classroom --</option>
-                        {% if classrooms %}
+                    <h1 class="text-3xl font-bold text-gray-900">Upload Materials</h1>
+                    <p class="text-gray-600 mt-1">Upload study materials and resources</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex-1 p-8 overflow-y-auto">
+            <div class="bg-white rounded-lg p-8 border border-gray-200 shadow-sm max-w-3xl">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-12 h-12 bg-orange-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-cloud-upload-alt text-white text-lg"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-gray-900">Upload Resources</h2>
+                </div>
+
+                <!-- Error/Success Messages -->
+                {% if result %}
+                    {% if result.success %}
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <h3 class="font-semibold text-green-700 mb-2"><i class="fas fa-check-circle mr-2"></i>Upload Completed</h3>
+                        <p class="text-green-600">
+                            Successfully uploaded <strong>{{ result.created }}</strong> out of <strong>{{ result.total }}</strong> files
+                        </p>
+                        {% if result.errors %}
+                        <div class="mt-4 bg-white rounded-lg p-3 border border-green-100">
+                            <p class="text-sm text-gray-700 font-semibold mb-2">Warnings:</p>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                {% for error in result.errors %}
+                                <li>• {{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <h3 class="font-semibold text-red-700 mb-2"><i class="fas fa-times-circle mr-2"></i>Upload Failed</h3>
+                        {% if result.errors %}
+                        <ul class="text-red-600 text-sm space-y-1">
+                            {% for error in result.errors %}
+                            <li>• {{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+                <!-- Upload Form -->
+                <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <div>
+                        <label for="classroom_id" class="block text-sm font-semibold text-black mb-2">Select Classroom <span class="text-red-500">*</span></label>
+                        <select id="classroom_id" name="classroom_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">-- Select a classroom --</option>
                             {% for classroom in classrooms %}
                             <option value="{{ classroom.id }}">Class {{ classroom.name }}</option>
                             {% endfor %}
-                        {% else %}
-                            <option disabled>No classrooms available</option>
-                        {% endif %}
-                    </select>
-                </div>
-
-                <!-- File Upload -->
-                <div>
-                    <label for="file" class="block text-sm font-medium text-gray-300 mb-2">Excel File (.xlsx or .xls)</label>
-                    <div class="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer" onclick="document.getElementById('file').click()">
-                        <input
-                            type="file"
-                            id="file"
-                            name="file"
-                            required
-                            accept=".xlsx,.xls"
-                            class="hidden"
-                            onchange="updateFileName()"
-                        >
-                        <p class="text-gray-400" id="file-label">Click to select or drag and drop</p>
+                        </select>
                     </div>
-                </div>
 
-                <!-- Template Info -->
-                <div class="bg-blue-900/20 border border-blue-800 rounded-lg p-4">
-                    <h3 class="text-sm font-semibold text-blue-300 mb-2">Required Columns:</h3>
-                    <ul class="text-sm text-gray-300 space-y-1">
-                        <li>• <code class="bg-gray-800 px-2 py-1 rounded text-xs">Name</code> - Student full name</li>
-                        <li>• <code class="bg-gray-800 px-2 py-1 rounded text-xs">Roll No</code> - Unique roll number</li>
-                        <li>• <code class="bg-gray-800 px-2 py-1 rounded text-xs">Parent Email</code> - Parent's email address</li>
-                    </ul>
-                </div>
-
-                <!-- Submit Button -->
-                <button
-                    type="submit"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200"
-                >
-                    Upload Students
-                </button>
-            </form>
-        </div>
-
-        <!-- Instructions -->
-        <div class="bg-gray-900 border border-gray-800 rounded-lg p-6">
-            <h2 class="text-xl font-bold mb-4">How to prepare your file:</h2>
-            <ol class="space-y-3 text-gray-300 list-decimal list-inside">
-                <li>Create an Excel file with three columns: <code class="bg-gray-800 px-2 py-1 rounded text-xs">Name</code>, <code class="bg-gray-800 px-2 py-1 rounded text-xs">Roll No</code>, <code class="bg-gray-800 px-2 py-1 rounded text-xs">Parent Email</code></li>
-                <li>Enter one student per row</li>
-                <li>Ensure roll numbers are unique within the classroom</li>
-                <li>Save the file as .xlsx format</li>
-                <li>Upload the file using the form above</li>
-            </ol>
-            <p class="text-gray-400 text-sm mt-4">A user account will be automatically created for each student with username as their roll number.</p>
-        </div>
-
-        <!-- View/Edit Student Credentials -->
-        <div class="bg-gray-900 border border-gray-800 rounded-lg p-8 mt-8">
-            <h2 class="text-xl font-bold mb-6">Manage Student Credentials</h2>
-
-            <div class="mb-6">
-                <label for="class_edit_filter" class="block text-sm font-medium text-gray-300 mb-2">Select Classroom</label>
-                <select
-                    id="class_edit_filter"
-                    class="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-blue-500 text-white"
-                    onchange="loadStudentsForEdit()"
-                >
-                    <option value="">-- Choose a classroom --</option>
-                    {% for classroom in classrooms %}
-                    <option value="{{ classroom.id }}">Class {{ classroom.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div id="edit-content" class="text-gray-400 text-center py-8">
-                Select a classroom to manage student credentials
-            </div>
-        </div>
-
-        <!-- Edit Modal -->
-        <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div class="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-bold text-white mb-4">Edit Student Credentials</h3>
-                <div class="space-y-4">
                     <div>
-                        <label class="block text-sm text-gray-300 mb-1">Student Name</label>
-                        <input type="text" id="editName" disabled class="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-gray-400 text-sm">
+                        <label for="file" class="block text-sm font-semibold text-black mb-2">Upload Excel File <span class="text-red-500">*</span></label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition cursor-pointer">
+                            <input type="file" id="file" name="file" accept=".xlsx,.xls" required onchange="updateFileName(this)" class="hidden">
+                            <label for="file" class="cursor-pointer">
+                                <i class="fas fa-file-upload text-4xl text-gray-400 mb-3"></i>
+                                <p class="text-black font-semibold mt-2">Click to upload or drag and drop</p>
+                                <p class="text-gray-600 text-sm">Excel files (.xlsx, .xls)</p>
+                            </label>
+                        </div>
+                        <p id="fileName" class="text-sm text-gray-600 mt-2"></p>
                     </div>
+
                     <div>
-                        <label class="block text-sm text-gray-300 mb-1">Username</label>
-                        <input type="text" id="editUsername" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-300 mb-1">Password</label>
-                        <input type="text" id="editPassword" class="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded text-white text-sm">
-                    </div>
-                    <div class="flex gap-2 pt-4">
-                        <button onclick="saveStudentEdit()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition">
-                            Save
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-semibold">
+                            <i class="fas fa-upload mr-2"></i>Upload File
                         </button>
-                        <button onclick="closeEditModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 rounded transition">
-                            Cancel
-                        </button>
+                    </div>
+                </form>
+
+                <!-- Help Section -->
+                <div class="mt-8 pt-8 border-t border-gray-200">
+                    <h3 class="font-bold text-gray-900 mb-4">Required Excel Format:</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-700 space-y-2">
+                        <p><strong>Column A:</strong> Student Name</p>
+                        <p><strong>Column B:</strong> Roll Number</p>
+                        <p><strong>Column C:</strong> Parent Email</p>
+                        <p class="text-gray-600 mt-3">Save the file as .xlsx format for best results.</p>
                     </div>
                 </div>
             </div>
@@ -189,142 +151,10 @@
 </div>
 
 <script>
-    function updateFileName() {
-        const fileInput = document.getElementById('file');
-        const fileLabel = document.getElementById('file-label');
-        if (fileInput.files.length > 0) {
-            fileLabel.textContent = fileInput.files[0].name;
-        }
-    }
-
-    let currentEditStudentId = null;
-
-    async function loadStudentsForEdit() {
-        const classroomId = document.getElementById('class_edit_filter').value;
-        const editDiv = document.getElementById('edit-content');
-
-        if (!classroomId) {
-            editDiv.innerHTML = '<p class="text-gray-400 text-center py-8">Select a classroom to manage student credentials</p>';
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/classroom/${classroomId}/student-credentials`);
-            if (!response.ok) {
-                editDiv.innerHTML = '<p class="text-red-300 text-center py-8">Error loading students</p>';
-                return;
-            }
-
-            const students = await response.json();
-
-            if (students.length === 0) {
-                editDiv.innerHTML = '<p class="text-gray-400 text-center py-8">No students in this classroom</p>';
-                return;
-            }
-
-            let html = '<div class="overflow-x-auto"><table class="w-full text-sm"><thead class="bg-gray-800"><tr><th class="px-4 py-2 text-left">Name</th><th class="px-4 py-2 text-left">Roll No</th><th class="px-4 py-2 text-left">Username</th><th class="px-4 py-2 text-left">Password</th><th class="px-4 py-2 text-left">Action</th></tr></thead><tbody class="divide-y divide-gray-700">';
-
-            students.forEach(student => {
-                html += `<tr class="hover:bg-gray-800">
-                    <td class="px-4 py-2 text-gray-300">${student.name}</td>
-                    <td class="px-4 py-2 text-gray-300">${student.roll_no}</td>
-                    <td class="px-4 py-2 text-blue-400 font-mono">${student.username}</td>
-                    <td class="px-4 py-2 text-blue-400 font-mono">••••••••</td>
-                    <td class="px-4 py-2 flex gap-2">
-                        <button class="text-yellow-400 hover:text-yellow-300 text-sm font-semibold" onclick="openEditModal(${student.id}, '${student.name}', '${student.username}', '${student.password}')">Edit</button>
-                        <button class="text-red-400 hover:text-red-300 text-sm font-semibold" onclick="deleteStudent(${student.id}, '${student.name}')">Delete</button>
-                    </td>
-                </tr>`;
-            });
-
-            html += '</tbody></table></div>';
-            editDiv.innerHTML = html;
-        } catch (error) {
-            console.error('Error:', error);
-            editDiv.innerHTML = '<p class="text-red-300 text-center py-8">Error loading students</p>';
-        }
-    }
-
-    function openEditModal(studentId, name, username, password) {
-        currentEditStudentId = studentId;
-        document.getElementById('editName').value = name;
-        document.getElementById('editUsername').value = username;
-        document.getElementById('editPassword').value = password;
-        document.getElementById('editModal').classList.remove('hidden');
-    }
-
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
-        currentEditStudentId = null;
-    }
-
-    async function saveStudentEdit() {
-        const username = document.getElementById('editUsername').value.trim();
-        const password = document.getElementById('editPassword').value.trim();
-
-        if (!username || !password) {
-            alert('Username and password are required');
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/student/${currentEditStudentId}/update-credentials`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert('Credentials updated successfully!');
-                closeEditModal();
-                const classroomId = document.getElementById('class_edit_filter').value;
-                loadStudentsForEdit();
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error updating credentials');
-        }
-    }
-
-    // Close modal when clicking outside
-    document.addEventListener('click', function(event) {
-        const modal = document.getElementById('editModal');
-        if (event.target === modal) {
-            closeEditModal();
-        }
-    });
-
-    async function deleteStudent(studentId, studentName) {
-        if (!confirm(`Are you sure you want to remove ${studentName}? This action cannot be undone.`)) {
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/student/${studentId}/delete`, {
-                method: 'POST'
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert('Student removed successfully!');
-                const classroomId = document.getElementById('class_edit_filter').value;
-                loadStudentsForEdit();
-            } else {
-                alert('Error: ' + (data.error || 'Unknown error'));
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error removing student');
+    function updateFileName(input) {
+        const fileNameEl = document.getElementById('fileName');
+        if (input.files && input.files[0]) {
+            fileNameEl.textContent = 'Selected file: ' + input.files[0].name;
         }
     }
 </script>

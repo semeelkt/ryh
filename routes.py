@@ -705,6 +705,10 @@ def register_routes(app):
         user = User.query.get(session['user_id'])
         classrooms = get_teacher_classrooms(user.id)
 
+        # Get all timetables for teacher's classrooms
+        classroom_ids = [c.id for c in classrooms]
+        timetables = Timetable.query.filter(Timetable.classroom_id.in_(classroom_ids)).all() if classroom_ids else []
+
         if request.method == 'POST':
             classroom_id = request.form.get('classroom_id', type=int)
             day_of_week = request.form.get('day_of_week', '').strip()
@@ -716,6 +720,7 @@ def register_routes(app):
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     error='All fields required'
                 )
 
@@ -725,6 +730,7 @@ def register_routes(app):
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     error='Class not found'
                 )
 
@@ -741,6 +747,7 @@ def register_routes(app):
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     error='Unauthorized access'
                 )
 
@@ -755,6 +762,7 @@ def register_routes(app):
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     error='Timetable slot already exists'
                 )
 
@@ -766,6 +774,7 @@ def register_routes(app):
                     return render_template(
                         'manage_timetable.html',
                         classrooms=classrooms,
+                        timetables=timetables,
                         error='End time must be after start time'
                     )
 
@@ -779,9 +788,13 @@ def register_routes(app):
                 db.session.add(timetable)
                 db.session.commit()
 
+                # Refresh timetables list
+                timetables = Timetable.query.filter(Timetable.classroom_id.in_(classroom_ids)).all() if classroom_ids else []
+
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     success=True,
                     subject_name=subject_name
                 )
@@ -789,10 +802,11 @@ def register_routes(app):
                 return render_template(
                     'manage_timetable.html',
                     classrooms=classrooms,
+                    timetables=timetables,
                     error='Invalid time format'
                 )
 
-        return render_template('manage_timetable.html', classrooms=classrooms)
+        return render_template('manage_timetable.html', classrooms=classrooms, timetables=timetables)
 
     @app.route('/teacher/delete-timetable/<int:timetable_id>', methods=['POST'])
     @login_required
